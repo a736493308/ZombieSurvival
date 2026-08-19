@@ -5679,6 +5679,22 @@ window.onload = function() {
       if (item.icon) { const img = new Image(); img.src = item.icon; }
     });
   }
+  // 预加载地图和地点图片（避免打开地图时加载延迟）
+  if (typeof LOCATIONS !== 'undefined') {
+    Object.values(LOCATIONS).forEach(loc => {
+      if (loc.bg) { const img = new Image(); img.src = loc.bg; }
+      if (loc.icon) { const img = new Image(); img.src = loc.icon; }
+    });
+  }
+  ['assets/map_bg_new.jpg','assets/title_new.jpg','assets/diary_icon.jpg',
+   'assets/skills_icon.jpg','assets/achievements_icon.jpg','assets/craft_sticker.jpg',
+   'assets/radio_sticker.jpg','assets/zombie.jpg','assets/zombie_armored.jpg',
+   'assets/res_food.jpg','assets/res_water.jpg','assets/res_medicine.jpg',
+   'assets/res_material.jpg','assets/res_ammo.jpg',
+   'assets/char_cop.png','assets/char_doctor.png','assets/char_worker.png','assets/char_student.png'
+  ].forEach(src => {
+    const img = new Image(); img.src = src;
+  });
   // 初始化灰尘粒子
   initDustCanvas();
   if (!localStorage.getItem('zombie_save')) {
