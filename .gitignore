@@ -1,3 +1,7 @@
-﻿gdd_current.xml
+gdd_current.xml
 gdd_v1.1.xml
 *.tmp
+.wrangler/
+*.log
+gitee_screenshot.jpg
+download_assets.py

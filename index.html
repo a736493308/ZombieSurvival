@@ -5397,9 +5397,11 @@ function backToTitleFromEnd() {
 const bgmMenu = new Audio('assets/bgm_menu.wav');
 bgmMenu.loop = true;
 bgmMenu.volume = 0;
+bgmMenu.preload = 'auto';
 const bgmSafehouse = new Audio('assets/bgm_safehouse.wav');
 bgmSafehouse.loop = true;
 bgmSafehouse.volume = 0;
+bgmSafehouse.preload = 'auto';
 
 let bgmMuted = false;
 let bgmVolume = 0.3; // 当前BGM音量
@@ -5493,6 +5495,7 @@ function toggleMute() {
 const bgmCombat = new Audio('assets/bgm_combat.wav');
 bgmCombat.loop = true;
 bgmCombat.volume = 0;
+bgmCombat.preload = 'auto';
 
 function playCombatBGM() {
   if (currentBGM === 'combat') return;
@@ -5513,13 +5516,44 @@ function stopCombatBGM() {
   }
 }
 
-// ===== 音效系统 =====
+// ===== 音效系统（预加载+对象池，消除延迟） =====
+const SFX_NAMES = ['click','confirm','error','hit','hurt','enemy_die','gunshot','zombie_growl',
+  'bandage','water','soda','coffee','hot_coffee','hot_cocoa','noodle','hot_noodles','chocolate',
+  'chips','snack','jerky','bread','canned','hot_stew','fried_meat','pet_food','disinfect','inject','pills'];
 const sfxCache = {};
-function playSfx(name, volume) {
-  if (!sfxCache[name]) {
-    sfxCache[name] = new Audio('assets/sfx_' + name + '.wav');
+const sfxPool = {}; // 频繁音效的对象池
+const POOL_SIZE = 3;
+
+// 页面加载时预创建所有音效
+SFX_NAMES.forEach(name => {
+  const audio = new Audio('assets/sfx_' + name + '.wav');
+  audio.preload = 'auto';
+  sfxCache[name] = audio;
+  // click音效创建对象池，避免快速连点被截断
+  if (name === 'click') {
+    sfxPool[name] = [audio];
+    for (let i = 1; i < POOL_SIZE; i++) {
+      const a = new Audio('assets/sfx_' + name + '.wav');
+      a.preload = 'auto';
+      sfxPool[name].push(a);
+    }
   }
-  const sfx = sfxCache[name];
+});
+
+let _poolIdx = 0;
+function playSfx(name, volume) {
+  let sfx;
+  if (sfxPool[name]) {
+    // 对象池：轮询使用空闲实例
+    sfx = sfxPool[name][_poolIdx % sfxPool[name].length];
+    _poolIdx++;
+  } else {
+    if (!sfxCache[name]) {
+      sfxCache[name] = new Audio('assets/sfx_' + name + '.wav');
+      sfxCache[name].preload = 'auto';
+    }
+    sfx = sfxCache[name];
+  }
   sfx.volume = volume || 0.6;
   sfx.currentTime = 0;
   sfx.play().catch(() => {});
@@ -5639,6 +5673,12 @@ function getWeatherEffects() {
 window.onload = function() {
   // 预加载过场动画图片
   introScenes.forEach(s => { const img = new Image(); img.src = s.img; });
+  // 预加载物品图标（后台静默加载，避免打开背包时卡顿）
+  if (typeof ITEMS !== 'undefined') {
+    Object.values(ITEMS).forEach(item => {
+      if (item.icon) { const img = new Image(); img.src = item.icon; }
+    });
+  }
   // 初始化灰尘粒子
   initDustCanvas();
   if (!localStorage.getItem('zombie_save')) {
