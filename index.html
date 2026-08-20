@@ -1797,7 +1797,7 @@ button {
 <div id="end-screen">
   <h2 id="end-title">游戏结束</h2>
   <div id="end-stats"></div>
-  <button class="title-btn" id="end-restart-btn" onclick="location.reload()">重新开始</button>
+  <button class="title-btn" id="end-restart-btn" onclick="restartFromDeath()">重新开始</button>
 </div>
 
 <!-- 地图界面 -->
@@ -5349,8 +5349,20 @@ function gameOver(reason) {
     解锁成就：${unlocked.size} / ${ACHIEVEMENTS.length}
   `;
   document.getElementById('end-restart-btn').textContent = '重新开始';
-  document.getElementById('end-restart-btn').onclick = () => location.reload();
+  document.getElementById('end-restart-btn').onclick = restartFromDeath;
   localStorage.removeItem('zombie_save');
+}
+
+function restartFromDeath() {
+  // 停止所有音频，不刷新页面，瞬间重开
+  try { stopCombatBGM(); } catch(e) {}
+  try { stopSafehouseBGM(); } catch(e) {}
+  document.getElementById('end-screen').classList.remove('active');
+  document.getElementById('game-screen').style.display = 'none';
+  document.getElementById('title-screen').style.display = 'flex';
+  currentBGM = null;
+  playMenuBGM();
+  startNewGame();
 }
 
 function victory() {
