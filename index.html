@@ -5354,7 +5354,7 @@ function gameOver(reason) {
 }
 
 function restartFromDeath() {
-  // 停止所有音频，不刷新页面，瞬间重开
+  // 停止所有音频，不刷新页面，瞬间返回主界面
   try { stopCombatBGM(); } catch(e) {}
   try { stopSafehouseBGM(); } catch(e) {}
   document.getElementById('end-screen').classList.remove('active');
@@ -5362,7 +5362,6 @@ function restartFromDeath() {
   document.getElementById('title-screen').style.display = 'flex';
   currentBGM = null;
   playMenuBGM();
-  startNewGame();
 }
 
 function victory() {
