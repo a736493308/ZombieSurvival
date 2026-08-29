@@ -270,6 +270,15 @@ button {
   font-family: 'Share Tech Mono', monospace;
 }
 
+/* 主角头像（状态面板底部角色条） */
+#player-portrait.pp-bar { display:flex; align-items:center; gap:9px; margin-top:10px; padding-top:9px; border-top:1px solid rgba(140,110,60,0.25); }
+#player-portrait img { width:44px; height:44px; border-radius:50%; object-fit:cover; object-position:center 14%; border:1px solid rgba(190,150,85,0.65); box-shadow:0 2px 8px rgba(0,0,0,0.6); background:#000; flex-shrink:0; }
+#player-portrait .pp-name { font-family:"ZCOOL XiaoWei",serif; font-size:13px; color:#e0c878; letter-spacing:1px; line-height:1.4; min-width:0; }
+@media (max-width:900px){ #player-portrait.pp-bar{margin-top:7px;padding-top:7px;gap:7px;} #player-portrait img{width:38px;height:38px;} #player-portrait .pp-name{font-size:12px;} }
+
+@keyframes pp-fade { from{opacity:0;transform:translateY(6px);} to{opacity:1;transform:translateY(0);} }
+
+
 /* 右上角：时间环境 */
 #hud-topright {
   position: absolute; top: 20px; right: 20px; z-index: 10;
@@ -1251,6 +1260,15 @@ button {
 .se-choice-btn:active { transform: translateY(1px); }
 .se-choice-hint { font-size: 11px; color: #8a7a5a; margin-top: 3px; }
 
+/* 事件幸存者头像 */
+.se-head { display:flex; align-items:center; gap:16px; margin-bottom:14px; }
+.se-head #se-portrait { width:86px; height:86px; flex-shrink:0; object-fit:cover; object-position:center 16%; border-radius:50%; border:2px solid rgba(200,160,80,0.55); box-shadow:0 4px 16px rgba(0,0,0,0.7); display:none; background:#000; }
+.se-head #se-portrait.show { display:block; animation:pp-fade .35s ease-out; }
+.se-head-meta { flex:1; min-width:0; }
+.se-head .se-title { margin-bottom:3px; }
+.se-who { font-size:14px; color:#c0a878; letter-spacing:1px; display:none; }
+.se-who.show { display:block; }
+
 /* ===== 成就面板 ===== */
 #achievements-overlay {
   display: none; position: absolute; inset: 0;
@@ -1706,8 +1724,11 @@ button {
     <div class="stat-mini" data-stat="thirst"><span class="label">💧 口渴</span><div class="bar"><div class="fill" style="width:100%;background:#37a"></div></div><span class="val">100</span></div>
     <div class="stat-mini" data-stat="mood"><span class="label">◈ 精神</span><div class="bar"><div class="fill" style="width:100%;background:#75a"></div></div><span class="val">100</span></div>
     <div class="stat-mini" data-stat="infection"><span class="label">☣ 感染</span><div class="bar"><div class="fill" style="width:0%;background:#4a4"></div></div><span class="val">0%</span></div>
+    <div id="player-portrait" class="pp-bar">
+      <img id="player-portrait-img" src="" alt="主角">
+      <div class="pp-name" id="player-portrait-name"></div>
+    </div>
   </div>
-
   <!-- 返回主界面按钮 -->
   <button id="back-to-title-btn" onclick="returnToTitle()" title="返回主界面（自动存档）">◀ 主菜单</button>
 
@@ -1957,7 +1978,13 @@ button {
 <!-- 避难所事件弹窗 -->
 <div id="shelter-event-overlay">
   <div class="shelter-event-panel">
-    <div class="se-title" id="se-title"></div>
+    <div class="se-head">
+      <img id="se-portrait" src="" alt="幸存者">
+      <div class="se-head-meta">
+        <div class="se-title" id="se-title"></div>
+        <div class="se-who" id="se-who"></div>
+      </div>
+    </div>
     <div class="se-desc" id="se-desc"></div>
     <div class="se-choices" id="se-choices"></div>
   </div>
@@ -2735,6 +2762,18 @@ function renderAchievements() {
 }
 
 // ===================== 避难所随机事件 =====================
+// 避难所随机事件中的幸存者访客（头像 + 身份 + 敲门台词）
+const SURVIVOR_NPC = [
+  { name: '老周', role: '退伍军人', portrait: 'assets/survivor_1.jpg',
+    line: '一个沙哑低沉的男声隔着门低声说："求求你……我不是丧尸……我手里有些药品，想换点吃的，可以吗？"' },
+  { name: '苏晓', role: '逃难的年轻女孩', portrait: 'assets/survivor_2.jpg',
+    line: '一个虚弱的女声带着哭腔："求求你……我没有被咬……我用身上的药换一点食物，好吗？"' },
+  { name: '阿哲', role: '失联的程序员', portrait: 'assets/survivor_3.jpg',
+    line: '一个压低的男声急促地说："别紧张，我是人……背包里有药，能不能换你两罐吃的？"' },
+  { name: '周姨', role: '退休社区护士', portrait: 'assets/survivor_4.jpg',
+    line: '一个温和却发颤的女声："孩子，开开门吧……我以前是护士，手里还有些药，想换口吃的……"' },
+];
+
 const SAFEHOUSE_EVENTS = [
   {
     id: 'zombie_door',
@@ -3113,9 +3152,22 @@ function triggerSafehouseEvent() {
   if (bonus.badLuckReduction > 0 && chance(bonus.badLuckReduction)) {
     pool = pool.filter(e => e.id !== 'zombie_door');
   }
+  // 幸存者拜访事件权重×3，提高遭遇率
+  const survEv = pool.find(e => e.id === 'survivor_knock');
+  if (survEv) pool.push(survEv, survEv);
   const ev = pool[rand(0, pool.length - 1)];
+  const sePortrait = document.getElementById('se-portrait');
+  const seWho = document.getElementById('se-who');
   document.getElementById('se-title').textContent = ev.title;
-  document.getElementById('se-desc').textContent = ev.desc;
+  if (ev.id === 'survivor_knock') {
+    const npc = SURVIVOR_NPC[rand(0, SURVIVOR_NPC.length - 1)];
+    sePortrait.src = npc.portrait; sePortrait.classList.add('show');
+    seWho.textContent = npc.name + ' · ' + npc.role; seWho.classList.add('show');
+    document.getElementById('se-desc').textContent = npc.line;
+  } else {
+    sePortrait.classList.remove('show'); seWho.classList.remove('show');
+    document.getElementById('se-desc').textContent = ev.desc;
+  }
   const choicesDiv = document.getElementById('se-choices');
   choicesDiv.innerHTML = '';
   ev.choices.forEach(c => {
@@ -3269,6 +3321,8 @@ function renderLocation() {
   const sticker = document.getElementById('radio-sticker');
   const craftSticker = document.getElementById('craft-sticker');
   const topIcons = document.getElementById('top-right-icons');
+  const _pp = document.getElementById('player-portrait');
+  if (_pp) { const _pc = CHARACTERS.find(x => x.id === game.selectedCharacter) || CHARACTERS[0]; if (_pc) { _pp.querySelector('img').src = _pc.portrait; _pp.querySelector('.pp-name').textContent = _pc.name + ' · ' + _pc.occupation; } }
   if (game.location === 'safehouse') {
     sticker.classList.add('visible');
     if (craftSticker) craftSticker.classList.add('visible');
@@ -4606,7 +4660,15 @@ function triggerStrayDogExplore(locName) {
     ]
   };
   document.getElementById('se-title').textContent = ev.title;
-  document.getElementById('se-desc').textContent = ev.desc;
+  if (ev.id === 'survivor_knock') {
+    const npc = SURVIVOR_NPC[rand(0, SURVIVOR_NPC.length - 1)];
+    sePortrait.src = npc.portrait; sePortrait.classList.add('show');
+    seWho.textContent = npc.name + ' · ' + npc.role; seWho.classList.add('show');
+    document.getElementById('se-desc').textContent = npc.line;
+  } else {
+    sePortrait.classList.remove('show'); seWho.classList.remove('show');
+    document.getElementById('se-desc').textContent = ev.desc;
+  }
   const choicesDiv = document.getElementById('se-choices');
   choicesDiv.innerHTML = '';
   ev.choices.forEach(c => {
@@ -5269,7 +5331,7 @@ function openBarricade() {
   let html = '<div class="bar-lvl">当前防御 <b>' + lvl + ' 级</b> &nbsp;→&nbsp; 升级后 <b>' + (lvl+1) + ' 级</b></div>';
   html += '<div class="bar-mats">'
     + '<div class="bar-mat ' + (woodOk?'ok':'lack') + '">🪵 木板 ×2（持有 ' + wood + '）<span>' + (woodOk?'必需材料':'✗ 缺少材料') + '</span></div>'
-    + '<div class="bar-mat ' + (metal>=1?'ok':'dim') + '">⚙ 废金属 ×1（持有 ' + metal + '）<span>' + (metal>=1?'将一并使用，结构更牢固':'没有也可用木板加固') + '</span></div>'
+    + '<div class="bar-mat ' + (metal>=1?'ok':'dim') + '">⚙ 废金属 ×1（持有 ' + metal + '）<span>' + (metal>=1?'将一并使用，结构更牢固':'可选材料（非必需）') + '</span></div>'
     + '<div class="bar-mat ' + (apOk?'ok':'lack') + '">⚡ 行动力 ×1（当前 ' + game.ap + '）<span>' + (apOk?'耗时约45分钟':'✗ 行动力不足') + '</span></div>'
     + '</div>';
   html += '<div class="bar-fx"><div>· 避难所夜间随机事件概率：<b>' + pctNow + '% → ' + pctNext + '%</b></div>'
