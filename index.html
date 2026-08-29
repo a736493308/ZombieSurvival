@@ -84,6 +84,11 @@ button {
   0%,100% { opacity: 0.6; }
   50% { opacity: 1; }
 }
+#loading-bar-wrap { position: relative; z-index: 1; width: 280px; margin: 10px auto 0; text-align: center; }
+#loading-bar-track { width: 100%; height: 8px; background: rgba(0,0,0,0.55); border: 1px solid rgba(180,140,80,0.35); border-radius: 4px; overflow: hidden; }
+#loading-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg,#8a5a28,#c8a060); border-radius: 4px; transition: width 0.25s ease-out; }
+#loading-bar-text { color: #b8a888; font-size: 12px; margin-top: 6px; font-family: 'Noto Sans SC', sans-serif; letter-spacing: 1px; }
+#loading-bar-wrap.done #loading-bar-fill { background: linear-gradient(90deg,#4a7a3a,#7ab05a); }
 .fullscreen-hint {
   position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
   color: #e8d8b8; font-size: 18px; z-index: 1;
@@ -152,8 +157,10 @@ button {
 #scene-bg {
   position: absolute; inset: 0;
   background-size: cover; background-position: center;
-  transition: background-image 0.8s;
+  transition: background-image 0.8s, filter 1.6s ease-in-out;
 }
+#game-screen.night #scene-bg { filter: brightness(0.48) saturate(0.62) hue-rotate(-10deg) contrast(1.05); }
+#scene-bg::after { transition: background 1.6s ease-in-out; }
 #scene-bg::after {
   content: ''; position: absolute; inset: 0;
   background: linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.5) 60%, rgba(0,0,0,0.8) 100%);
@@ -252,6 +259,8 @@ button {
   border-radius: 1px;
 }
 .stat-mini .fill.low { animation: bar-blink 1s ease-in-out infinite; }
+.stat-mini.danger-stat .val { color: #ff6a5a !important; font-weight: 700; }
+.stat-mini.danger-stat .label { color: #e08070; }
 @keyframes bar-blink {
   0%,100% { opacity: 1; }
   50% { opacity: 0.5; }
@@ -655,6 +664,37 @@ button {
 .combat-btn:hover { background: rgba(120,50,30,0.9); transform: translateY(-1px); }
 .combat-btn:active { transform: translateY(0); }
 .combat-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+/* 战斗打击感 */
+.combat-enemy { position: relative; }
+#combat-enemy-img.hit-flash { animation: enemy-hit 0.28s ease-out; }
+@keyframes enemy-hit {
+  0% { filter: brightness(3) saturate(0) sepia(1) hue-rotate(-50deg) saturate(6); transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  50% { transform: translateX(5px); }
+  100% { filter: none; transform: translateX(0); }
+}
+.combat-container.shake { animation: screen-shake 0.3s ease-out; }
+@keyframes screen-shake {
+  0%,100% { transform: translate(0,0); }
+  20% { transform: translate(-5px,3px); }
+  40% { transform: translate(5px,-3px); }
+  60% { transform: translate(-4px,-2px); }
+  80% { transform: translate(4px,2px); }
+}
+.dmg-float {
+  position: absolute; font-family: 'Oswald',sans-serif; font-weight: 700;
+  font-size: 30px; pointer-events: none; z-index: 60;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.9); animation: dmg-rise 0.8s ease-out forwards;
+}
+.dmg-float.enemy-dmg { color: #ffd24a; right: 40px; top: 10px; }
+.dmg-float.player-dmg { color: #ff5a4a; left: 50%; top: 40%; font-size: 34px; }
+.dmg-float.miss { color: #bbb; font-size: 22px; }
+@keyframes dmg-rise {
+  0% { opacity: 0; transform: translateY(12px) scale(0.6); }
+  20% { opacity: 1; transform: translateY(0) scale(1.15); }
+  40% { transform: translateY(-6px) scale(1); }
+  100% { opacity: 0; transform: translateY(-42px) scale(1); }
+}
 
 /* ===== 制作界面 ===== */
 #craft-overlay {
@@ -1555,6 +1595,13 @@ button {
   pointer-events: none;
 }
 
+/* ===== 统一弹窗打开动画 ===== */
+#combat-overlay.active,#craft-overlay.active,#backpack-overlay.active,#diary-overlay.active,#skills-overlay.active,#achievements-overlay.active,#shelter-event-overlay.active,#radio-modal.active { animation: ov-fade 0.22s ease-out; }
+#combat-overlay.active > div,#craft-overlay.active > div,#backpack-overlay.active > div,#diary-overlay.active > div,#skills-overlay.active > div,#achievements-overlay.active > div,#shelter-event-overlay.active > div,#radio-modal.active > div { animation: ov-pop 0.28s cubic-bezier(0.2,0.85,0.3,1.12); }
+.rd-overlay[style*="flex"] { animation: ov-fade 0.22s ease-out; }
+.rd-overlay[style*="flex"] > div { animation: ov-pop 0.28s cubic-bezier(0.2,0.85,0.3,1.12); }
+@keyframes ov-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ov-pop { from { opacity: 0; transform: translateY(16px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
 </style>
 </head>
 <body>
@@ -1585,6 +1632,10 @@ button {
   <div class="subtitle">LAST SURVIVORS</div>
   <button class="title-btn" onclick="startNewGame()">开始生存</button>
   <button class="title-btn" onclick="loadGame()" id="load-btn">继续游戏</button>
+  <div id="loading-bar-wrap">
+    <div id="loading-bar-track"><div id="loading-bar-fill"></div></div>
+    <div id="loading-bar-text">资源加载中 0%</div>
+  </div>
   <div class="sound-hint" id="sound-hint">🔊 点击任意位置开启声音</div>
   <div class="fullscreen-hint">💡 全屏游玩效果更佳，按 F11 或点击右上角全屏按钮<br>初次打开请等一小会进行资源加载，感谢您的游玩！</div>
   <button class="title-fullscreen-btn" onclick="toggleFullscreen()" title="全屏游戏">⛶ 全屏</button>
@@ -2369,13 +2420,18 @@ function renderStats() {
   const effMaxEnergy = 100 + getSkillBonus().maxEnergyBonus;
   if (game.hp > effMaxHp) game.hp = effMaxHp;
   if (game.energy > effMaxEnergy) game.energy = effMaxEnergy;
+  // 颜色分级：高=绿，中=橙，低=红并闪烁（感染值反向：越高越危险）
+  function _statColor(pct, inverted) {
+    if (inverted) { return pct > 60 ? '#d33' : (pct > 30 ? '#e90' : '#5a4'); }
+    return pct > 60 ? '#5fa83a' : (pct > 30 ? '#e8a020' : '#d43838');
+  }
   const stats = [
-    { val: game.hp, max: effMaxHp, color: '#a33' },
-    { val: game.energy, max: effMaxEnergy, color: '#5a3' },
-    { val: game.hunger, max: 100, color: '#c73' },
-    { val: game.thirst, max: 100, color: '#37a' },
-    { val: game.mood, max: 100, color: '#75a' },
-    { val: game.infection, max: 100, color: game.infection > 50 ? '#c33' : '#4a4' },
+    { val: game.hp, max: effMaxHp },
+    { val: game.energy, max: effMaxEnergy },
+    { val: game.hunger, max: 100 },
+    { val: game.thirst, max: 100 },
+    { val: game.mood, max: 100 },
+    { val: game.infection, max: 100, inverted: true },
   ];
   let danger = false;
   bars.forEach((bar, i) => {
@@ -2383,10 +2439,12 @@ function renderStats() {
     const pct = Math.max(0, (s.val/s.max)*100);
     const fill = bar.querySelector('.fill');
     fill.style.width = pct + '%';
-    fill.style.background = s.color;
-    fill.classList.toggle('low', pct < 30 && i < 5);
+    fill.style.background = _statColor(pct, s.inverted);
+    const isDanger = s.inverted ? pct > 60 : pct < 30;
+    fill.classList.toggle('low', isDanger);
+    bar.classList.toggle('danger-stat', isDanger);
     bar.querySelector('.val').textContent = Math.round(s.val) + (i===5?'%':'');
-    if (pct < 30 && i < 5) danger = true;
+    if (isDanger) danger = true;
   });
   // 低状态边缘泛光
   document.getElementById('edge-glow').classList.toggle('danger', danger);
@@ -4656,6 +4714,7 @@ function combatAction(action, weaponId) {
   if (chance(hitRate)) {
     const actualDmg = Math.max(1, damage + rand(-2, 3));
     enemy.hp -= actualDmg;
+    enemyHitFx(actualDmg);
     combatLog(`命中！造成${actualDmg}点伤害。`);
     playSfx('hit', 0.5);
     updateEnemyHp();
@@ -4685,6 +4744,27 @@ function combatAction(action, weaponId) {
   if (game.inCombat) renderCombatActions();
 }
 
+// 战斗打击反馈
+function spawnDmgFloat(cls, text) {
+  const container = document.querySelector('.combat-container');
+  if (!container) return;
+  const el = document.createElement('div');
+  el.className = 'dmg-float ' + cls;
+  el.textContent = text;
+  container.appendChild(el);
+  setTimeout(() => { if (el.parentNode) el.remove(); }, 800);
+}
+function enemyHitFx(dmg) {
+  const img = document.getElementById('combat-enemy-img');
+  if (img) { img.classList.remove('hit-flash'); void img.offsetWidth; img.classList.add('hit-flash'); }
+  spawnDmgFloat('enemy-dmg', '-' + dmg);
+}
+function playerHitFx(dmg) {
+  const box = document.querySelector('.combat-container');
+  if (box) { box.classList.remove('shake'); void box.offsetWidth; box.classList.add('shake'); }
+  spawnDmgFloat('player-dmg', '-' + dmg);
+}
+
 function enemyAttack() {
   const enemy = game.combatEnemy;
   // 灼烧/眩晕状态：敌人本回合无法攻击
@@ -4702,6 +4782,7 @@ function enemyAttack() {
       dmg = Math.max(1, Math.round(dmg * (1 - ITEMS[game.armor].defense)));
     }
     game.hp -= dmg;
+    playerHitFx(dmg);
     combatLog(`${enemy.name}抓伤了你，受到${dmg}点伤害！`);
     playSfx('hurt', 0.5);
     // 感染风险
@@ -4731,6 +4812,7 @@ function useCombatItem(id) {
   // 燃烧瓶：直接造成伤害，无视护甲，使敌人灼烧1回合
   const dmg = item.damage + rand(-5, 10);
   game.combatEnemy.hp -= dmg;
+  enemyHitFx(dmg);
   combatLog('你点燃燃烧瓶扔了出去！火焰吞噬了' + game.combatEnemy.name + '，造成' + dmg + '点伤害！');
   playSfx('hit', 0.7);
   game.combatStunned = 1;
@@ -5682,19 +5764,16 @@ function getWeatherEffects() {
 }
 
 window.onload = function() {
-  // 预加载过场动画图片
-  introScenes.forEach(s => { const img = new Image(); img.src = s.img; });
-  // 预加载物品图标（后台静默加载，避免打开背包时卡顿）
+  // 收集所有需要预加载的图片资源并显示进度
+  const preloadList = [];
+  introScenes.forEach(s => preloadList.push(s.img));
   if (typeof ITEMS !== 'undefined') {
-    Object.values(ITEMS).forEach(item => {
-      if (item.icon) { const img = new Image(); img.src = item.icon; }
-    });
+    Object.values(ITEMS).forEach(item => { if (item.icon) preloadList.push(item.icon); });
   }
-  // 预加载地图和地点图片（避免打开地图时加载延迟）
   if (typeof LOCATIONS !== 'undefined') {
     Object.values(LOCATIONS).forEach(loc => {
-      if (loc.bg) { const img = new Image(); img.src = loc.bg; }
-      if (loc.icon) { const img = new Image(); img.src = loc.icon; }
+      if (loc.bg) preloadList.push(loc.bg);
+      if (loc.icon) preloadList.push(loc.icon);
     });
   }
   ['assets/map_bg_new.jpg','assets/title_new.jpg','assets/diary_icon.jpg',
@@ -5703,8 +5782,27 @@ window.onload = function() {
    'assets/res_food.jpg','assets/res_water.jpg','assets/res_medicine.jpg',
    'assets/res_material.jpg','assets/res_ammo.jpg',
    'assets/char_cop.png','assets/char_doctor.png','assets/char_worker.png','assets/char_student.png'
-  ].forEach(src => {
-    const img = new Image(); img.src = src;
+  ].forEach(src => preloadList.push(src));
+  const uniquePreload = [...new Set(preloadList)];
+  let _loaded = 0;
+  const _fillEl = document.getElementById('loading-bar-fill');
+  const _textEl = document.getElementById('loading-bar-text');
+  const _wrapEl = document.getElementById('loading-bar-wrap');
+  function _updateLoadProgress() {
+    _loaded++;
+    const pct = Math.round((_loaded / uniquePreload.length) * 100);
+    if (_fillEl) _fillEl.style.width = pct + '%';
+    if (_textEl) _textEl.textContent = '资源加载中 ' + pct + '%';
+    if (_loaded >= uniquePreload.length && _wrapEl) {
+      _wrapEl.classList.add('done');
+      if (_textEl) _textEl.textContent = '资源加载完成，点击开始游戏';
+    }
+  }
+  uniquePreload.forEach(src => {
+    const img = new Image();
+    img.onload = _updateLoadProgress;
+    img.onerror = _updateLoadProgress;
+    img.src = src;
   });
   // 初始化灰尘粒子
   initDustCanvas();
