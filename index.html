@@ -3244,16 +3244,16 @@ function renderActions() {
   list.innerHTML = '';
   
   if (game.location === 'safehouse') {
-    addActionBtn(list, '休息恢复', 'rest', '恢复精力和少量生命', '1AP');
+    addActionBtn(list, '休息恢复', 'rest', '恢复精力和少量生命', '0AP');
     addActionBtn(list, '加固避难所', 'barricade', '消耗建材提升防御', '1AP');
     if (getWeatherEffects().canCollectWater) {
       const wLeft = 2 - (game.waterCollectCount || 0);
       addActionBtn(list, '收集雨水' + (wLeft < 2 ? '(' + wLeft + '次)' : ''), 'collect_water', '雨天接水，每次1瓶，最多2次', '1AP');
     }
-    addActionBtn(list, '加热食物', 'cook', '加热食材提升效果', '0AP');
+    addActionBtn(list, '加热食物', 'cook', '加热食材提升效果', '1AP');
     if (game.dogCompanion) {
-      addActionBtn(list, '和狗玩耍', 'play_dog', '抚摸伙伴，恢复精神', '0AP');
-      addActionBtn(list, '喂狗', 'feed_dog', '给狗喂食，恢复饱腹度', '0AP');
+      addActionBtn(list, '和狗玩耍', 'play_dog', '抚摸伙伴，恢复精神', '1AP');
+      addActionBtn(list, '喂狗', 'feed_dog', '给狗喂食，恢复饱腹度', '1AP');
     }
     addActionBtn(list, '睡到天明', 'wait', '休息到次日清晨（任意时间可用）', '结束今天');
     addActionBtn(list, '打开地图', 'travel', '查看城市地图', '0AP');
@@ -3262,9 +3262,9 @@ function renderActions() {
     const searched = game.searched[game.location] || 0;
     const night = isNight();
     addActionBtn(list, `快速搜索 (已搜${searched}次)`, 'search_quick', '40分钟 · 低风险 · 少量物资', '1AP');
-    addActionBtn(list, `彻底搜索`, 'search_thorough', '75分钟 · 高风险 · 更多物资' + (night ? ' · 夜晚稀有↑' : ''), '1AP');
+    addActionBtn(list, `彻底搜索`, 'search_thorough', '75分钟 · 高风险 · 更多物资' + (night ? ' · 夜晚稀有↑' : ''), '2AP');
     if (game.ap >= 1) {
-      addActionBtn(list, '返回避难所', 'return', '回到安全屋', '1AP');
+      addActionBtn(list, '返回避难所', 'return', '回到安全屋', '1-2AP');
     } else {
       addActionBtn(list, '疲惫返回', 'return', '精疲力尽地摸回安全屋（体力-15，夜晚有风险）', '0AP');
     }
@@ -3296,7 +3296,7 @@ function addActionBtn(list, label, action, desc, cost) {
   btn.className = 'action-btn';
   btn.innerHTML = `${label} <span class="cost">${cost}</span><span class="hint">${desc}</span>`;
   btn.onclick = () => doAction(action);
-  if (game.ap <= 0 && !['craft','travel','backpack','diary','skills','achievements','cook','return','play_dog','feed_dog','rest','wait'].includes(action)) btn.disabled = true;
+  if (game.ap <= 0 && !['craft','travel','backpack','diary','skills','achievements','cook','return','feed_dog','rest','wait'].includes(action)) btn.disabled = true;
   list.appendChild(btn);
 }
 
@@ -3689,6 +3689,7 @@ function returnToTitle() {
   document.getElementById('game-screen').style.display = 'none';
   document.getElementById('title-screen').style.display = 'flex';
   log('已返回主菜单，进度已自动保存。', 'system');
+  refreshLoadButton();
 }
 
 function startNewGame() {
@@ -3732,7 +3733,7 @@ function actuallyStartGame() {
 
 function loadGame() {
   const data = localStorage.getItem('zombie_save');
-  if (!data) { alert('没有存档'); return; }
+  if (!data) { refreshLoadButton(); return; }
   game = JSON.parse(data);
   document.getElementById('title-screen').style.display = 'none';
   document.getElementById('game-screen').style.display = 'block';
@@ -3767,7 +3768,16 @@ function loadGame() {
 }
 
 function saveGame() {
+  if (game && game._dead) return; // 死亡后不再写存档
   localStorage.setItem('zombie_save', JSON.stringify(game));
+}
+function refreshLoadButton() {
+  const btn = document.getElementById('load-btn');
+  if (!btn) return;
+  const has = !!localStorage.getItem('zombie_save');
+  btn.disabled = !has;
+  btn.style.opacity = has ? '1' : '0.4';
+  btn.style.cursor = has ? 'pointer' : 'not-allowed';
 }
 
 function renderAll() {
@@ -3826,8 +3836,8 @@ function doRest() {
   // 休息属于恢复行为，不消耗行动力，AP耗尽也可使用（耗时90分钟并消耗饥渴）
   game.energy = Math.min(100, game.energy + 40);
   // 休息期间身体仍在消耗
-  game.hunger = Math.max(0, game.hunger - 6);
-  game.thirst = Math.max(0, game.thirst - 9);
+  game.hunger = Math.max(0, game.hunger - 2);
+  game.thirst = Math.max(0, game.thirst - 3);
   let restDmg = 0;
   if (game.hunger <= 0) restDmg += 15;
   else if (game.hunger <= 15) restDmg += 8;
@@ -4243,8 +4253,9 @@ function travelTo(locId) {
 }
 
 function doSearch(mode) {
-  if (game.ap < 1) { log('行动点不足！', 'danger'); playSfx('error', 0.4); return; }
-  game.ap -= 1;
+  const searchAp = (mode === 'thorough') ? 2 : 1;
+  if (game.ap < searchAp) { log('行动力不足！' + (mode === 'thorough' ? '彻底搜索' : '快速搜索') + '需要 ' + searchAp + ' 点行动力。', 'danger'); playSfx('error', 0.4); return; }
+  game.ap -= searchAp;
   const loc = LOCATIONS[game.location];
   game.searched[game.location] = (game.searched[game.location] || 0) + 1;
   const searched = game.searched[game.location];
@@ -5257,7 +5268,9 @@ function doCook() {
 }
 
 function doCookItem(sourceId, resultId, resultName) {
+  if (game.ap < 1) { log('行动力不足，无法加热食物！', 'danger'); playSfx('error', 0.4); return; }
   if (!hasItem(sourceId)) { playSfx('error', 0.4); return; }
+  game.ap -= 1;
   removeItem(sourceId);
   addItem(resultId);
   if (advanceTime(20)) { closeCookMenu(); return; }
@@ -5280,7 +5293,9 @@ function doPlayDog() {
     playSfx('error', 0.3);
     return;
   }
-  const gain = 15 + rand(0, 10);
+    if (game.ap < 1) { log('行动力不足，无法陪狗玩耍！', 'danger'); playSfx('error', 0.4); return; }
+  game.ap -= 1;
+const gain = 15 + rand(0, 10);
   game.mood = Math.min(100, game.mood + gain);
   game.hunger = Math.max(0, game.hunger - 3);
   game.thirst = Math.max(0, game.thirst - 4);
@@ -5339,7 +5354,9 @@ function doFeedDog() {
 }
 
 function doFeedDogItem(itemId, amount) {
+  if (game.ap < 1) { log('行动力不足，无法喂食！', 'danger'); playSfx('error', 0.4); return; }
   if (!hasItem(itemId)) { playSfx('error', 0.4); return; }
+  game.ap -= 1;
   removeItem(itemId);
   game.dogHunger = Math.min(100, (game.dogHunger||0) + amount);
   game.dogStarveDays = 0;
@@ -5359,8 +5376,10 @@ function closeFeedDog() {
 function doCraft(recipeId) {
   const r = RECIPES.find(x => x.id === recipeId);
   if (!r) return;
+  if (game.ap < 1) { log('行动力不足，无法制作！', 'danger'); playSfx('error', 0.4); return; }
   const canCraft = Object.entries(r.mats).every(([id, c]) => hasItem(id, c));
   if (!canCraft) { playSfx('error', 0.4); return; }
+  game.ap -= 1;
   Object.entries(r.mats).forEach(([id, c]) => removeItem(id, c));
   
   if (r.result === 'barricade_upgrade') {
@@ -5415,10 +5434,10 @@ function endDay() {
   // 状态衰减（天气影响口渴消耗）
   if (game.waitedTonight) {
     // 等待夜晚过去：恢复更多体力，但饥渴和精神消耗更大
-    game.hunger = Math.max(0, game.hunger - 18);
-    game.thirst = Math.max(0, game.thirst - Math.round(25 * weatherFx.thirstDecayMod));
+    game.hunger = Math.max(0, game.hunger - 28);
+    game.thirst = Math.max(0, game.thirst - Math.round(36 * weatherFx.thirstDecayMod));
     game.energy = Math.min(100 + getSkillBonus().maxEnergyBonus, game.energy + 50);
-    game.mood = Math.max(0, game.mood - 18 - weatherFx.moodPenalty);
+    game.mood = Math.max(0, game.mood - 24 - weatherFx.moodPenalty);
     game.waitedTonight = false;
     log('你在焦虑中熬到了天亮，虽然体力有所恢复，但饥渴和孤独感愈发强烈。', 'system');
   } else {
@@ -5534,7 +5553,9 @@ function gameOver(reason) {
   `;
   document.getElementById('end-restart-btn').textContent = '重新开始';
   document.getElementById('end-restart-btn').onclick = restartFromDeath;
+  game._dead = true;
   localStorage.removeItem('zombie_save');
+  refreshLoadButton();
 }
 
 function restartFromDeath() {
@@ -5546,6 +5567,7 @@ function restartFromDeath() {
   document.getElementById('title-screen').style.display = 'flex';
   currentBGM = null;
   playMenuBGM();
+  refreshLoadButton();
 }
 
 function victory() {
@@ -5578,6 +5600,7 @@ function victory() {
   document.getElementById('end-restart-btn').textContent = '返回主界面';
   document.getElementById('end-restart-btn').onclick = backToTitleFromEnd;
   localStorage.removeItem('zombie_save');
+  refreshLoadButton();
 }
 
 function backToTitleFromEnd() {
@@ -5908,10 +5931,7 @@ window.onload = function() {
   });
   // 初始化灰尘粒子
   initDustCanvas();
-  if (!localStorage.getItem('zombie_save')) {
-    document.getElementById('load-btn').style.opacity = '0.4';
-    document.getElementById('load-btn').style.cursor = 'not-allowed';
-  }
+  refreshLoadButton();
   // 尝试启动主菜单BGM（可能被浏览器自动播放策略阻止）
   playMenuBGM();
   // 首次用户交互时解锁音频并重试
