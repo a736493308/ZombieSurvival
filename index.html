@@ -1158,6 +1158,9 @@ button {
   font-size: 18px; cursor: pointer; padding: 4px 8px;
 }
 .skills-close:hover { color: #c84; }
+.bp-header { display:flex; align-items:center; justify-content:space-between; padding:0 2px 14px; margin-bottom:14px; border-bottom:1px solid rgba(140,110,60,0.25); }
+.bp-close { background:none; border:1px solid rgba(140,110,60,0.4); color:#b8a878; font-size:16px; width:34px; height:34px; border-radius:4px; cursor:pointer; transition:all .15s; line-height:1; }
+.bp-close:hover { color:#f0d8a0; border-color:#c84; background:rgba(120,60,30,0.4); }
 .skills-list { padding: 16px 24px; overflow-y: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .skill-card {
   background: rgba(40,32,20,0.8); border: 1px solid rgba(140,110,60,0.25);
@@ -1257,8 +1260,8 @@ button {
 }
 #achievements-overlay.active { display: flex; }
 .ach-item {
-  display: flex; align-items: center; gap: 14px;
-  padding: 12px 16px; background: rgba(40,32,20,0.8);
+  display: flex; align-items: center; gap: 16px;
+  padding: 15px 18px; background: rgba(40,32,20,0.8);
   border: 1px solid rgba(140,110,60,0.25); border-radius: 4px;
   transition: all 0.15s;
 }
@@ -1267,14 +1270,14 @@ button {
   background: rgba(60,45,20,0.6);
 }
 .ach-item.locked { opacity: 0.45; }
-.ach-icon { font-size: 28px; }
+.ach-icon { font-size: 34px; flex-shrink:0; }
 .ach-info { flex: 1; }
-.ach-name { font-size: 14px; color: #d8c8a0; font-weight: 500; }
+.ach-name { font-size: 17px; color: #e0d0a8; font-weight: 600; }
 .ach-item.locked .ach-name { color: #7a6a4a; }
-.ach-desc { font-size: 11px; color: #9a8a6a; margin-top: 2px; }
-.ach-reward { font-size: 12px; color:#d8b870; margin-top:3px; }
+.ach-desc { font-size: 14px; color: #b0a07e; margin-top: 4px; line-height:1.5; }
+.ach-reward { font-size: 14px; color:#e8c878; margin-top:5px; font-weight:600; }
 .ach-item.locked .ach-reward { color:#8a7c5c; }
-.ach-status { font-size: 11px; color: #8a7a5a; }
+.ach-status { font-size: 13px; color: #a89868; flex-shrink:0; }
 .ach-item.unlocked .ach-status { color: #e8a040; }
 
 /* ===== 收音机弹窗 ===== */
@@ -1847,7 +1850,7 @@ button {
 <!-- 背包弹窗 -->
 <div id="backpack-overlay">
   <div class="backpack-container" style="width:520px;">
-    <div class="craft-title">背包</div>
+    <div class="bp-header"><span class="craft-title" style="margin:0;">背 包</span><button class="bp-close" onclick="closeBackpack()" title="关闭背包">✕</button></div>
     <div class="cat-tabs" id="inv-cat-tabs"></div>
     <div class="inv-grid" id="inventory"></div>
     <div class="weapon-section">
@@ -2333,17 +2336,17 @@ function getSkillLv(id) { return game.skills[id] || 0; }
 
 // ===================== 成就系统 =====================
 const ACHIEVEMENTS = [
-  { id: 'first_blood', name: '初次杀戮', desc: '击杀第一只丧尸', icon: '🗡' },
-  { id: 'survivor_7', name: '一周幸存者', desc: '存活7天', icon: '📅' },
-  { id: 'survivor_15', name: '半月坚守', desc: '存活15天', icon: '🛡' },
-  { id: 'survivor_25', name: '胜利在望', desc: '存活25天', icon: '🌟' },
-  { id: 'giant_slayer', name: '巨人杀手', desc: '击杀巨型丧尸', icon: '💀' },
-  { id: 'armored_slayer', name: '破甲者', desc: '击杀装甲丧尸', icon: '⚔' },
-  { id: 'radio_master', name: '收音爱好者', desc: '发现所有电台频率', icon: '📻' },
-  { id: 'well_equipped', name: '全副武装', desc: '同时装备枪械和防弹衣', icon: '🎯' },
-  { id: 'zombie_hunter', name: '丧尸猎人', desc: '累计击杀20只丧尸', icon: '🔫' },
-  { id: 'fortified', name: '铜墙铁壁', desc: '避难所加固到3级', icon: '🏠' },
-  { id: 'dog_friend', name: '人类最好的朋友', desc: '收留一只流浪狗', icon: '🐕' },
+  { id: 'first_blood', name: '初次杀戮', desc: '击杀第一只丧尸', icon: '🗡', reward: { items: { bandage: 1 } }, rewardText: '绷带×1' },
+  { id: 'survivor_7', name: '一周幸存者', desc: '存活7天', icon: '📅', reward: { skillPoint: 1 }, rewardText: '技能点 +1' },
+  { id: 'survivor_15', name: '半月坚守', desc: '存活15天', icon: '🛡', reward: { skillPoint: 1 }, rewardText: '技能点 +1' },
+  { id: 'survivor_25', name: '胜利在望', desc: '存活25天', icon: '🌟', reward: { skillPoint: 2 }, rewardText: '技能点 +2' },
+  { id: 'giant_slayer', name: '巨人杀手', desc: '击杀巨型丧尸', icon: '💀', reward: { skillPoint: 1 }, rewardText: '技能点 +1' },
+  { id: 'armored_slayer', name: '破甲者', desc: '击杀装甲丧尸', icon: '⚔', reward: { items: { ammo: 4 } }, rewardText: '手枪子弹×4' },
+  { id: 'radio_master', name: '收音爱好者', desc: '发现所有电台频率', icon: '📻', reward: { items: { battery: 2 } }, rewardText: '电池×2' },
+  { id: 'well_equipped', name: '全副武装', desc: '同时装备枪械和防弹衣', icon: '🎯', reward: { items: { bandage: 1 } }, rewardText: '绷带×1' },
+  { id: 'zombie_hunter', name: '丧尸猎人', desc: '累计击杀20只丧尸', icon: '🔫', reward: { skillPoint: 1 }, rewardText: '技能点 +1' },
+  { id: 'fortified', name: '铜墙铁壁', desc: '避难所加固到3级', icon: '🏠', reward: { items: { scrap_metal: 2 } }, rewardText: '废金属×2' },
+  { id: 'dog_friend', name: '人类最好的朋友', desc: '收留一只流浪狗', icon: '🐕', reward: { items: { pet_food: 2 } }, rewardText: '宠物粮×2' },
   { id: 'victory', name: '获救', desc: '成功存活30天', icon: '🚁' },
   // ===== 新增：带奖励的成就，鼓励不同玩法路线 =====
   { id: 'craftsman', name: '能工巧匠', desc: '累计制作8件物品', icon: '🔧', reward: { skillPoint: 1 }, rewardText: '技能点 +1' },
@@ -3388,7 +3391,7 @@ function renderInventory() {
     if (i < filtered.length) {
       const [id, count] = filtered[i];
       const item = ITEMS[id];
-      if (item.icon) slot.style.backgroundImage = `url('')`;
+      if (item.icon) slot.style.backgroundImage = `url('${item.icon}')`;
       slot.style.backgroundSize = 'contain';
       slot.style.backgroundRepeat = 'no-repeat';
       slot.style.backgroundPosition = 'center 30%';
@@ -5265,17 +5268,17 @@ function openBarricade() {
   const canUp = apOk && woodOk && !maxed;
   let html = '<div class="bar-lvl">当前防御 <b>' + lvl + ' 级</b> &nbsp;→&nbsp; 升级后 <b>' + (lvl+1) + ' 级</b></div>';
   html += '<div class="bar-mats">'
-    + '<div class="bar-mat ' + (woodOk?'ok':'lack') + '">🪵 木板 ×2（持有 ' + wood + '）<span>必需材料</span></div>'
+    + '<div class="bar-mat ' + (woodOk?'ok':'lack') + '">🪵 木板 ×2（持有 ' + wood + '）<span>' + (woodOk?'必需材料':'✗ 缺少材料') + '</span></div>'
     + '<div class="bar-mat ' + (metal>=1?'ok':'dim') + '">⚙ 废金属 ×1（持有 ' + metal + '）<span>' + (metal>=1?'将一并使用，结构更牢固':'没有也可用木板加固') + '</span></div>'
-    + '<div class="bar-mat ' + (apOk?'ok':'lack') + '">⚡ 行动力 ×1（当前 ' + game.ap + '）<span>耗时约45分钟</span></div>'
+    + '<div class="bar-mat ' + (apOk?'ok':'lack') + '">⚡ 行动力 ×1（当前 ' + game.ap + '）<span>' + (apOk?'耗时约45分钟':'✗ 行动力不足') + '</span></div>'
     + '</div>';
   html += '<div class="bar-fx"><div>· 避难所夜间随机事件概率：<b>' + pctNow + '% → ' + pctNext + '%</b></div>'
     + '<div>· 门窗更牢固，丧尸更难闯入</div>'
     + '<div>· 加固到 3 级可解锁「🏠 铜墙铁壁」成就</div>'
     + '<div class="bar-warn">⚠ 暴风雨有小概率损坏加固设施，使等级下降1级</div></div>';
   if (maxed) html += '<div class="bar-err">已达到最高加固等级（5级）。</div>';
-  else if (!woodOk) html += '<div class="bar-err">木板不足（需要2块），可搜索停车场、公寓楼获取。</div>';
-  else if (!apOk) html += '<div class="bar-err">行动力不足，无法加固。</div>';
+  else if (!woodOk) html += '<div class="bar-err">缺少材料：还需木板 ×2（当前持有 ' + wood + ' 块），可前往停车场、公寓楼搜索建材。</div>';
+  else if (!apOk) html += '<div class="bar-err">行动力不足（需 1 点），请先休息恢复。</div>';
   document.getElementById('barricade-body').innerHTML = html;
   const btn = document.getElementById('barricade-confirm');
   btn.disabled = !canUp;
