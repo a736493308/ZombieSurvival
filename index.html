@@ -452,23 +452,15 @@ button {
 }
 .inv-slot {
   aspect-ratio: 1; background: rgba(30,28,22,0.8);
-  border: 1px solid rgba(140,110,60,0.2); border-radius: 3px;
+  border: 1px solid rgba(140,110,60,0.2); border-radius: 4px;
   display: flex; align-items: center; justify-content: center;
-  position: relative; cursor: pointer; font-size: 10px;
-  background-size: cover; background-position: center;
-  transition: all 0.15s;
+  position: relative; cursor: pointer; font-size: 11px;
+  background-size: contain !important; background-repeat: no-repeat; background-position: center 28%;
+  padding: 2px; overflow: hidden; transition: all 0.15s;
 }
 .inv-slot:hover { border-color: #c88; transform: scale(1.05); }
-.inv-slot .count {
-  position: absolute; bottom: 1px; right: 3px;
-  font-size: 12px; color: #fff; text-shadow: 0 1px 2px #000;
-  font-family: 'Share Tech Mono', monospace;
-}
-.inv-slot .name {
-  position: absolute; bottom: -16px; left: 0; right: 0;
-  font-size: 9px; color: #998; text-align: center; white-space: nowrap;
-  overflow: hidden; text-overflow: ellipsis;
-}
+.inv-slot .count { position: absolute; top: 2px; left: 4px; font-size: 12px; font-weight: bold; color: #ffe6a0; text-shadow: 0 1px 2px #000; font-family: 'Share Tech Mono', monospace; background: rgba(0,0,0,0.5); border-radius: 3px; padding: 0 3px; }
+.inv-slot .name { position: absolute; bottom: 2px; left: 2px; right: 2px; font-size: 11px; font-weight: 600; color: #f2e8d2; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: rgba(0,0,0,0.66); border-radius: 3px; padding: 1px 2px; line-height: 1.25; }
 .inv-empty { opacity: 0.2; }
 
 /* 分类标签 */
@@ -1205,6 +1197,30 @@ button {
 }
 #midnight-overlay.active { display: flex; animation: ov-fade 0.25s ease-out; }
 #midnight-overlay.active > div { animation: ov-pop 0.3s cubic-bezier(0.2,0.85,0.3,1.12); }
+#barricade-overlay { display:none; position:absolute; inset:0; z-index:130; background:rgba(0,0,0,0.82); align-items:center; justify-content:center; backdrop-filter:blur(3px); }
+#barricade-overlay.active { display:flex; animation:ov-fade 0.22s ease-out; }
+.bar-panel { width:min(440px,92%); max-height:88%; overflow-y:auto; background:linear-gradient(145deg,#2a2218,#1a1510); border:1px solid rgba(180,140,80,0.55); border-radius:8px; padding:22px 24px; box-shadow:0 10px 44px rgba(0,0,0,0.85); }
+.bar-title { font-family:'ZCOOL XiaoWei',serif; font-size:23px; color:#e8d8b8; letter-spacing:4px; text-align:center; margin-bottom:16px; }
+.bar-lvl { text-align:center; font-size:16px; color:#c8b890; margin-bottom:14px; }
+.bar-lvl b { color:#e8c878; font-size:18px; }
+.bar-mats { display:flex; flex-direction:column; gap:8px; margin-bottom:14px; }
+.bar-mat { display:flex; justify-content:space-between; align-items:center; font-size:15px; padding:9px 12px; border-radius:5px; background:rgba(0,0,0,0.28); border:1px solid rgba(180,140,80,0.18); color:#d8cba8; }
+.bar-mat span { font-size:12px; color:#9a8c6c; }
+.bar-mat.ok { border-color:rgba(110,170,110,0.5); }
+.bar-mat.lack { border-color:rgba(200,80,60,0.55); color:#e09080; }
+.bar-mat.dim { opacity:0.72; }
+.bar-fx { font-size:14px; color:#b8a880; line-height:2; border-top:1px solid rgba(180,140,80,0.2); padding-top:12px; }
+.bar-fx b { color:#9cc890; }
+.bar-warn { color:#c8a060; font-size:13px; margin-top:4px; }
+.bar-err { margin-top:12px; color:#e08070; font-size:14px; text-align:center; background:rgba(120,40,30,0.18); padding:8px; border-radius:4px; }
+.bar-btns { display:flex; gap:14px; justify-content:center; margin-top:20px; }
+.bar-btns button { padding:10px 34px; font-size:16px; font-family:'ZCOOL XiaoWei',serif; letter-spacing:3px; border-radius:3px; cursor:pointer; }
+.bar-btn-cancel { background:rgba(80,80,80,0.7); color:#ccc; border:1px solid #888; }
+.bar-btn-ok { background:rgba(120,80,30,0.85); color:#f0e0c0; border:1px solid #c8a060; }
+.cook-menu-item { display:flex; align-items:center; gap:14px; padding:12px 14px; background:rgba(0,0,0,0.26); border:1px solid rgba(180,140,80,0.22); border-radius:7px; }
+.cook-menu-item img { flex-shrink:0; }
+.cook-menu-item > div { flex:1; min-width:0; }
+.cook-menu-item .recipe-btn { flex-shrink:0; padding:9px 20px; font-size:15px; font-family:'ZCOOL XiaoWei',serif; letter-spacing:2px; }
 .shelter-event-panel {
   width: 520px;
   background: linear-gradient(145deg, rgba(40,32,22,0.98), rgba(25,20,12,0.99));
@@ -1256,6 +1272,8 @@ button {
 .ach-name { font-size: 14px; color: #d8c8a0; font-weight: 500; }
 .ach-item.locked .ach-name { color: #7a6a4a; }
 .ach-desc { font-size: 11px; color: #9a8a6a; margin-top: 2px; }
+.ach-reward { font-size: 12px; color:#d8b870; margin-top:3px; }
+.ach-item.locked .ach-reward { color:#8a7c5c; }
 .ach-status { font-size: 11px; color: #8a7a5a; }
 .ach-item.unlocked .ach-status { color: #e8a040; }
 
@@ -1788,18 +1806,18 @@ button {
 
 <!-- 加热食物选择弹窗 -->
 <div id="cook-menu-overlay" class="rd-overlay" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.8);align-items:center;justify-content:center;">
-  <div style="background:linear-gradient(145deg,#2a2218,#1a1510);border:1px solid rgba(180,140,80,0.5);border-radius:6px;padding:24px 28px;max-width:440px;width:90%;box-shadow:0 8px 40px rgba(0,0,0,0.8);">
-    <div style="font-family:'ZCOOL XiaoWei',serif;font-size:20px;color:#e8d8b8;letter-spacing:4px;text-align:center;margin-bottom:18px;">加 热 食 物</div>
-    <div id="cook-menu-list" style="display:flex;flex-direction:column;gap:10px;max-height:360px;overflow-y:auto;"></div>
+  <div style="background:linear-gradient(145deg,#2a2218,#1a1510);border:1px solid rgba(180,140,80,0.5);border-radius:6px;padding:24px 28px;max-width:480px;width:90%;box-shadow:0 8px 40px rgba(0,0,0,0.8);">
+    <div style="font-family:'ZCOOL XiaoWei',serif;font-size:23px;color:#e8d8b8;letter-spacing:4px;text-align:center;margin-bottom:18px;">加 热 食 物</div>
+    <div id="cook-menu-list" style="display:flex;flex-direction:column;gap:12px;max-height:460px;overflow-y:auto;"></div>
     <button onclick="closeCookMenu()" style="display:block;margin:18px auto 0;padding:8px 36px;font-size:14px;font-family:'ZCOOL XiaoWei',serif;background:rgba(80,80,80,0.7);color:#ccc;border:1px solid #888;border-radius:2px;cursor:pointer;letter-spacing:4px;">关闭</button>
   </div>
 </div>
 
 <!-- 喂狗选择弹窗 -->
 <div id="feed-dog-overlay" class="rd-overlay" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.8);align-items:center;justify-content:center;">
-  <div style="background:linear-gradient(145deg,#2a2218,#1a1510);border:1px solid rgba(180,140,80,0.5);border-radius:6px;padding:24px 28px;max-width:440px;width:90%;box-shadow:0 8px 40px rgba(0,0,0,0.8);">
-    <div style="font-family:'ZCOOL XiaoWei',serif;font-size:20px;color:#e8d8b8;letter-spacing:4px;text-align:center;margin-bottom:18px;">喂 食 伙 伴</div>
-    <div id="feed-dog-list" style="display:flex;flex-direction:column;gap:10px;max-height:360px;overflow-y:auto;"></div>
+  <div style="background:linear-gradient(145deg,#2a2218,#1a1510);border:1px solid rgba(180,140,80,0.5);border-radius:6px;padding:24px 28px;max-width:480px;width:90%;box-shadow:0 8px 40px rgba(0,0,0,0.8);">
+    <div style="font-family:'ZCOOL XiaoWei',serif;font-size:23px;color:#e8d8b8;letter-spacing:4px;text-align:center;margin-bottom:18px;">喂 食 伙 伴</div>
+    <div id="feed-dog-list" style="display:flex;flex-direction:column;gap:12px;max-height:460px;overflow-y:auto;"></div>
     <button onclick="closeFeedDog()" style="display:block;margin:18px auto 0;padding:8px 36px;font-size:14px;font-family:'ZCOOL XiaoWei',serif;background:rgba(80,80,80,0.7);color:#ccc;border:1px solid #888;border-radius:2px;cursor:pointer;letter-spacing:4px;">关闭</button>
   </div>
 </div>
@@ -1809,7 +1827,7 @@ button {
   <div style="background:linear-gradient(145deg,#2a2218,#1a1510);border:1px solid rgba(180,140,80,0.5);border-radius:6px;padding:24px 28px;max-width:520px;width:90%;box-shadow:0 8px 40px rgba(0,0,0,0.9);">
     <div style="font-family:'ZCOOL XiaoWei',serif;font-size:20px;color:#e8d8b8;letter-spacing:4px;text-align:center;margin-bottom:8px;">选 择 武 器</div>
     <div style="color:#8a7a5a;font-size:13px;text-align:center;margin-bottom:16px;">选择最多两把武器携带出发（点击选中/取消）</div>
-    <div id="weapon-select-list" style="display:flex;flex-direction:column;gap:10px;max-height:360px;overflow-y:auto;"></div>
+    <div id="weapon-select-list" style="display:flex;flex-direction:column;gap:12px;max-height:460px;overflow-y:auto;"></div>
     <div style="display:flex;gap:12px;justify-content:center;margin-top:18px;">
       <button onclick="confirmWeaponSelect()" style="padding:8px 36px;font-size:14px;font-family:'ZCOOL XiaoWei',serif;background:rgba(120,80,30,0.8);color:#f0e0c0;border:1px solid #c8a060;border-radius:2px;cursor:pointer;letter-spacing:4px;">确认出发</button>
       <button onclick="cancelWeaponSelect()" style="padding:8px 36px;font-size:14px;font-family:'ZCOOL XiaoWei',serif;background:rgba(80,80,80,0.7);color:#ccc;border:1px solid #888;border-radius:2px;cursor:pointer;letter-spacing:4px;">取消</button>
@@ -1942,6 +1960,17 @@ button {
   </div>
 </div>
 
+<!-- 加固避难所确认弹窗 -->
+<div id="barricade-overlay">
+  <div class="bar-panel">
+    <div class="bar-title">🔨 加固避难所</div>
+    <div id="barricade-body"></div>
+    <div class="bar-btns">
+      <button class="bar-btn-cancel" onclick="closeBarricade()">取消</button>
+      <button class="bar-btn-ok" id="barricade-confirm" onclick="confirmBarricade()">确认加固</button>
+    </div>
+  </div>
+</div>
 <!-- 午夜滞留外地抉择弹窗 -->
 <div id="midnight-overlay">
   <div class="shelter-event-panel" style="border-color:rgba(200,60,40,0.6);">
@@ -1958,7 +1987,7 @@ button {
   <div class="skills-panel" style="width:560px;">
     <div class="skills-header">
       <span class="skills-title">成就记录</span>
-      <span class="skills-points">已解锁：<b id="ach-count">0</b> / 12</span>
+      <span class="skills-points">已解锁：<b id="ach-count">0</b> / <b id="ach-total">18</b></span>
       <button class="skills-close" onclick="closeAchievements()">✕</button>
     </div>
     <div class="skills-list" id="achievements-list" style="grid-template-columns:1fr;"></div>
@@ -2316,6 +2345,13 @@ const ACHIEVEMENTS = [
   { id: 'fortified', name: '铜墙铁壁', desc: '避难所加固到3级', icon: '🏠' },
   { id: 'dog_friend', name: '人类最好的朋友', desc: '收留一只流浪狗', icon: '🐕' },
   { id: 'victory', name: '获救', desc: '成功存活30天', icon: '🚁' },
+  // ===== 新增：带奖励的成就，鼓励不同玩法路线 =====
+  { id: 'craftsman', name: '能工巧匠', desc: '累计制作8件物品', icon: '🔧', reward: { skillPoint: 1 }, rewardText: '技能点 +1' },
+  { id: 'chef', name: '末日厨神', desc: '累计加热食物5次', icon: '🍲', reward: { mood: 25 }, rewardText: '精神 +25' },
+  { id: 'explorer', name: '踏遍全城', desc: '在5个不同地点搜索过', icon: '🧭', reward: { items: { wood_plank: 2, scrap_metal: 2 } }, rewardText: '木板×2、废金属×2' },
+  { id: 'sharpshooter', name: '神枪手', desc: '用手枪累计击杀8只丧尸', icon: '🎯', reward: { items: { ammo: 6 } }, rewardText: '手枪子弹×6' },
+  { id: 'pacifist', name: '潜行专家', desc: '存活到第10天且累计击杀不超过3只', icon: '🤫', reward: { skillPoint: 2 }, rewardText: '技能点 +2（潜行流）' },
+  { id: 'veteran', name: '百战余生', desc: '累计击杀40只丧尸', icon: '🎖', reward: { skillPoint: 1, items: { bandage: 2 } }, rewardText: '技能点+1、绷带×2' },
 ];
 
 function checkAchievements() {
@@ -2323,10 +2359,19 @@ function checkAchievements() {
   const already = new Set(game.achievements);
   function unlock(id) {
     if (!already.has(id)) {
+      already.add(id);
       game.achievements.push(id);
       const a = ACHIEVEMENTS.find(x => x.id === id);
       if (a) {
         log('🏆 成就解锁：' + a.name + ' - ' + a.desc, 'good');
+        // 发放成就奖励（奖励克制，重在引导玩法）
+        if (a.reward) {
+          const rmsg = [];
+          if (a.reward.skillPoint) { game.skillPoints = (game.skillPoints||0) + a.reward.skillPoint; rmsg.push('技能点+' + a.reward.skillPoint); }
+          if (a.reward.mood) { game.mood = Math.min(100, game.mood + a.reward.mood); rmsg.push('精神+' + a.reward.mood); }
+          if (a.reward.items) Object.entries(a.reward.items).forEach(([iid,n]) => { addItem(iid,n); rmsg.push((ITEMS[iid]?ITEMS[iid].name:iid) + '×' + n); });
+          if (rmsg.length) log('🎁 成就奖励：' + rmsg.join('、') + '，已放入背包。', 'good');
+        }
         playSfx('confirm', 0.5);
       }
     }
@@ -2342,7 +2387,12 @@ function checkAchievements() {
   if (game.kills >= 20) unlock('zombie_hunter');
   if ((game.barricadeLevel || 0) >= 3) unlock('fortified');
   if (game.dogCompanion) unlock('dog_friend');
-}
+  if ((game.totalCrafted||0) >= 8) unlock('craftsman');
+  if ((game.totalCooked||0) >= 5) unlock('chef');
+  if (Object.keys(game.searched||{}).length >= 5) unlock('explorer');
+  if ((game.pistolKills||0) >= 8) unlock('sharpshooter');
+  if (game.day >= 10 && (game.kills||0) <= 3) unlock('pacifist');
+  if ((game.kills||0) >= 40) unlock('veteran');}
 
 // 低精神值惩罚
 function getMoodPenalty() {
@@ -2425,9 +2475,9 @@ function getPhaseName() {
 }
 function advanceTime(minutes) {
   game.clock += minutes;
-  // 随时间自然代谢：行动越久越饥渴（每1分钟 饥饿-0.04、口渴-0.06）
-  game.hunger = Math.max(0, game.hunger - minutes * 0.04);
-  game.thirst = Math.max(0, game.thirst - minutes * 0.06);
+  // 随时间自然代谢（每1分钟 饥饿-0.03、口渴-0.045），整体放缓让节奏更耐玩
+  game.hunger = Math.max(0, game.hunger - minutes * 0.03);
+  game.thirst = Math.max(0, game.thirst - minutes * 0.045);
   if (game.clock >= 1440) {
     if (game.location === 'safehouse') {
       endDay();
@@ -2660,6 +2710,8 @@ function closeAchievements() {
 }
 function renderAchievements() {
   const unlocked = new Set(game.achievements || []);
+  const totalEl = document.getElementById('ach-total');
+  if (totalEl) totalEl.textContent = ACHIEVEMENTS.length;
   document.getElementById('ach-count').textContent = unlocked.size;
   const list = document.getElementById('achievements-list');
   list.innerHTML = '';
@@ -2667,11 +2719,12 @@ function renderAchievements() {
     const got = unlocked.has(a.id);
     const div = document.createElement('div');
     div.className = 'ach-item ' + (got ? 'unlocked' : 'locked');
+    const rewardHtml = a.rewardText ? '<div class="ach-reward">🎁 ' + a.rewardText + '</div>' : '';
     div.innerHTML =
       '<span class="ach-icon">' + (got ? a.icon : '🔒') + '</span>' +
       '<div class="ach-info">' +
       '<div class="ach-name">' + a.name + '</div>' +
-      '<div class="ach-desc">' + a.desc + '</div>' +
+      '<div class="ach-desc">' + a.desc + '</div>' + rewardHtml +
       '</div>' +
       '<span class="ach-status">' + (got ? '已解锁' : '未解锁') + '</span>';
     list.appendChild(div);
@@ -3335,8 +3388,10 @@ function renderInventory() {
     if (i < filtered.length) {
       const [id, count] = filtered[i];
       const item = ITEMS[id];
-      if (item.icon) slot.style.backgroundImage = `url('${item.icon}')`;
-      slot.style.backgroundSize = 'cover';
+      if (item.icon) slot.style.backgroundImage = `url('')`;
+      slot.style.backgroundSize = 'contain';
+      slot.style.backgroundRepeat = 'no-repeat';
+      slot.style.backgroundPosition = 'center 30%';
       slot.innerHTML = `<span class="count">${count}</span><span class="name">${item.name}</span>`;
       if (game.weapon === id || game.armor === id) slot.style.boxShadow = 'inset 0 0 0 2px #c84';
       slot.onmouseenter = (e) => showTooltip(e, item);
@@ -3814,7 +3869,7 @@ function doAction(action) {
   switch(action) {
     case 'rest': doRest(); break;
     case 'craft': openCraft(); break;
-    case 'barricade': doBarricade(); break;
+    case 'barricade': openBarricade(); break;
     case 'wait': doWait(); break;
     case 'travel': openTravel(); break;
     case 'search_quick': doSearch('quick'); break;
@@ -3835,9 +3890,7 @@ function doAction(action) {
 function doRest() {
   // 休息属于恢复行为，不消耗行动力，AP耗尽也可使用（耗时90分钟并消耗饥渴）
   game.energy = Math.min(100, game.energy + 40);
-  // 休息期间身体仍在消耗
-  game.hunger = Math.max(0, game.hunger - 2);
-  game.thirst = Math.max(0, game.thirst - 3);
+  // 短时打盹不再额外扣饥渴，仅承担90分钟自然代谢（单位消耗低于睡到天明）
   let restDmg = 0;
   if (game.hunger <= 0) restDmg += 15;
   else if (game.hunger <= 15) restDmg += 8;
@@ -4389,7 +4442,8 @@ function doSearch(mode) {
     log('你翻找了半天，什么也没找到。', 'system');
   }
 
-  // 随机事件
+    checkAchievements(); // 搜索后检测探索类成就
+// 随机事件
   if (chance(mode === 'thorough' ? 0.45 : 0.3)) {
     triggerRandomEvent();
   }
@@ -4817,6 +4871,7 @@ function combatAction(action, weaponId) {
       playSfx('enemy_die', 0.6);
       game.kills++;
       game.dayKills = (game.dayKills || 0) + 1;
+      if (game.weapon === 'pistol') game.pistolKills = (game.pistolKills||0) + 1;
       if (game.kills % 5 === 0) { game.skillPoints = (game.skillPoints||0) + 1; combatLog('累计击杀' + game.kills + '只丧尸！获得1点技能点。'); }
       if (enemy.type === 'brute') { game.skillPoints = (game.skillPoints||0) + 1; game.killedBrute = true; combatLog('击杀巨型丧尸！额外获得1点技能点。'); }
       if (enemy.type === 'armored') { game.skillPoints = (game.skillPoints||0) + 1; game.killedArmored = true; combatLog('击杀装甲丧尸！额外获得1点技能点。'); }
@@ -5200,17 +5255,51 @@ function renderDiary() {
   document.getElementById('diary-next').disabled = diaryPageIdx >= totalPages - 1;
 }
 
-function doBarricade() {
-  if (game.ap < 1) { log('行动点不足！', 'danger'); playSfx('error', 0.4); return; }
+function openBarricade() {
+  const lvl = game.barricadeLevel || 0;
   const wood = game.inventory.wood_plank || 0;
   const metal = game.inventory.scrap_metal || 0;
-  if (wood < 2) { log('需要至少2块木板才能加固！', 'danger'); playSfx('error', 0.4); return; }
+  const pctNow = Math.round(Math.max(0.2, 0.45 - lvl * 0.04) * 100);
+  const pctNext = Math.round(Math.max(0.2, 0.45 - (lvl + 1) * 0.04) * 100);
+  const apOk = game.ap >= 1, woodOk = wood >= 2, maxed = lvl >= 5;
+  const canUp = apOk && woodOk && !maxed;
+  let html = '<div class="bar-lvl">当前防御 <b>' + lvl + ' 级</b> &nbsp;→&nbsp; 升级后 <b>' + (lvl+1) + ' 级</b></div>';
+  html += '<div class="bar-mats">'
+    + '<div class="bar-mat ' + (woodOk?'ok':'lack') + '">🪵 木板 ×2（持有 ' + wood + '）<span>必需材料</span></div>'
+    + '<div class="bar-mat ' + (metal>=1?'ok':'dim') + '">⚙ 废金属 ×1（持有 ' + metal + '）<span>' + (metal>=1?'将一并使用，结构更牢固':'没有也可用木板加固') + '</span></div>'
+    + '<div class="bar-mat ' + (apOk?'ok':'lack') + '">⚡ 行动力 ×1（当前 ' + game.ap + '）<span>耗时约45分钟</span></div>'
+    + '</div>';
+  html += '<div class="bar-fx"><div>· 避难所夜间随机事件概率：<b>' + pctNow + '% → ' + pctNext + '%</b></div>'
+    + '<div>· 门窗更牢固，丧尸更难闯入</div>'
+    + '<div>· 加固到 3 级可解锁「🏠 铜墙铁壁」成就</div>'
+    + '<div class="bar-warn">⚠ 暴风雨有小概率损坏加固设施，使等级下降1级</div></div>';
+  if (maxed) html += '<div class="bar-err">已达到最高加固等级（5级）。</div>';
+  else if (!woodOk) html += '<div class="bar-err">木板不足（需要2块），可搜索停车场、公寓楼获取。</div>';
+  else if (!apOk) html += '<div class="bar-err">行动力不足，无法加固。</div>';
+  document.getElementById('barricade-body').innerHTML = html;
+  const btn = document.getElementById('barricade-confirm');
+  btn.disabled = !canUp;
+  btn.style.opacity = canUp ? '1' : '0.45';
+  btn.style.cursor = canUp ? 'pointer' : 'not-allowed';
+  document.getElementById('barricade-overlay').classList.add('active');
+}
+function closeBarricade() {
+  document.getElementById('barricade-overlay').classList.remove('active');
+}
+function confirmBarricade() {
+  const lvl = game.barricadeLevel || 0;
+  const wood = game.inventory.wood_plank || 0;
+  const metal = game.inventory.scrap_metal || 0;
+  if (lvl >= 5) { log('加固已达最高等级。', 'system'); closeBarricade(); return; }
+  if (game.ap < 1) { log('行动点不足！', 'danger'); playSfx('error', 0.4); return; }
+  if (wood < 2) { log('需要至少2块木板才能加固！', 'danger'); playSfx('error', 0.4); closeBarricade(); return; }
   game.inventory.wood_plank -= 2;
   if (metal >= 1) game.inventory.scrap_metal -= 1;
   game.ap -= 1;
-  game.barricadeLevel = (game.barricadeLevel || 0) + 1;
-  if (advanceTime(45)) return; // 跨天则结束
-  log(`你用木板${metal >= 1 ? '和金属' : ''}加固了门窗，防御提升至${game.barricadeLevel}级。`, 'good');
+  game.barricadeLevel = lvl + 1;
+  closeBarricade();
+  if (advanceTime(45)) return;
+  log('你用木板' + (metal >= 1 ? '和金属' : '') + '加固了门窗，防御提升至' + game.barricadeLevel + '级。', 'good');
   playSfx('confirm', 0.3);
   checkAchievements();
   renderAll();
@@ -5251,11 +5340,12 @@ function doCook() {
     const div = document.createElement('div');
     div.className = 'cook-menu-item';
     div.innerHTML = `
-      <img src="${result.icon}" alt="${r.name}" style="width:48px;height:48px;object-fit:cover;border-radius:4px;border:1px solid rgba(180,140,80,0.3);">
-      <div style="flex:1;">
-        <div style="color:#e8d8b8;font-size:14px;font-weight:bold;">${r.name}</div>
-        <div style="color:#8a7a5a;font-size:11px;">消耗：${r.srcName} x1（拥有${have}）</div>
-        <div style="color:#6a8a6a;font-size:11px;">${result.desc}</div>
+      <img src="${result.icon}" alt="${r.name}" style="width:58px;height:58px;object-fit:cover;border-radius:6px;border:1px solid rgba(180,140,80,0.4);">
+      <div style="flex:1;min-width:0;">
+        <div style="color:#e8d8b8;font-size:17px;font-weight:bold;margin-bottom:2px;">${r.name}</div>
+        <div style="color:#b09c72;font-size:14px;line-height:1.5;">消耗：${r.srcName} x1（拥有${have}）</div>
+        <div style="color:#8aaa82;font-size:13px;line-height:1.5;">${result.desc}</div>
+      </div>
       </div>
       <button class="recipe-btn" onclick="doCookItem('${r.source}','${r.result}','${r.name}')">加热</button>
     `;
@@ -5273,9 +5363,11 @@ function doCookItem(sourceId, resultId, resultName) {
   game.ap -= 1;
   removeItem(sourceId);
   addItem(resultId);
+  game.totalCooked = (game.totalCooked||0) + 1;
   if (advanceTime(20)) { closeCookMenu(); return; }
   log('你用小炉子做了一份' + resultName + '，温暖的感觉让你精神一振。', 'good');
   playSfx('confirm', 0.3);
+  checkAchievements();
   closeCookMenu();
   checkDayEnd();
   renderAll();
@@ -5338,10 +5430,11 @@ function doFeedDog() {
     const div = document.createElement('div');
     div.className = 'cook-menu-item';
     div.innerHTML = `
-      <img src="${item.icon}" alt="${item.name}" style="width:48px;height:48px;object-fit:cover;border-radius:4px;border:1px solid rgba(180,140,80,0.3);">
-      <div style="flex:1;">
-        <div style="color:#e8d8b8;font-size:14px;font-weight:bold;">${item.name} <span style="color:#6a8a6a;font-size:12px;">饱腹+${f.amount}</span></div>
-        <div style="color:#8a7a5a;font-size:11px;">拥有：${have}</div>
+      <img src="${item.icon}" alt="${item.name}" style="width:58px;height:58px;object-fit:cover;border-radius:6px;border:1px solid rgba(180,140,80,0.4);">
+      <div style="flex:1;min-width:0;">
+        <div style="color:#e8d8b8;font-size:17px;font-weight:bold;margin-bottom:2px;">${item.name} <span style="color:#8aaa82;font-size:14px;">饱腹+${f.amount}</span></div>
+        <div style="color:#b09c72;font-size:14px;">拥有：${have}</div>
+      </div>
       </div>
       <button class="recipe-btn" onclick="doFeedDogItem('${f.id}',${f.amount})">喂食</button>
     `;
@@ -5381,6 +5474,7 @@ function doCraft(recipeId) {
   if (!canCraft) { playSfx('error', 0.4); return; }
   game.ap -= 1;
   Object.entries(r.mats).forEach(([id, c]) => removeItem(id, c));
+  game.totalCrafted = (game.totalCrafted||0) + 1;
   
   if (r.result === 'barricade_upgrade') {
     game.barricadeLevel++;
@@ -5392,6 +5486,7 @@ function doCraft(recipeId) {
   if (advanceTime(20)) return; // 跨天则结束
   renderCraftList(); // 刷新
   renderStats();
+  checkAchievements();
   saveGame();
 }
 
