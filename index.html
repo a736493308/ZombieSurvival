@@ -1198,6 +1198,13 @@ button {
   backdrop-filter: blur(3px);
 }
 #shelter-event-overlay.active { display: flex; }
+#midnight-overlay {
+  display: none; position: absolute; inset: 0; z-index: 120;
+  background: rgba(10,0,0,0.88); align-items: center; justify-content: center;
+  backdrop-filter: blur(3px);
+}
+#midnight-overlay.active { display: flex; animation: ov-fade 0.25s ease-out; }
+#midnight-overlay.active > div { animation: ov-pop 0.3s cubic-bezier(0.2,0.85,0.3,1.12); }
 .shelter-event-panel {
   width: 520px;
   background: linear-gradient(145deg, rgba(40,32,22,0.98), rgba(25,20,12,0.99));
@@ -1935,6 +1942,17 @@ button {
   </div>
 </div>
 
+<!-- 午夜滞留外地抉择弹窗 -->
+<div id="midnight-overlay">
+  <div class="shelter-event-panel" style="border-color:rgba(200,60,40,0.6);">
+    <div class="se-title" style="color:#e0604a;">午夜降临 · 危险警告</div>
+    <div class="se-desc" id="midnight-desc"></div>
+    <div class="se-choices">
+      <button class="se-choice-btn" onclick="midnightGoHome()">立即返回避难所（安全）</button>
+      <button class="se-choice-btn" style="border-color:rgba(200,60,40,0.6);color:#e08070;" onclick="midnightStay()">冒险继续留下（危险度大幅提升）</button>
+    </div>
+  </div>
+</div>
 <!-- 成就面板 -->
 <div id="achievements-overlay">
   <div class="skills-panel" style="width:560px;">
@@ -2410,15 +2428,49 @@ function advanceTime(minutes) {
   // 随时间自然代谢：行动越久越饥渴（每1分钟 饥饿-0.04、口渴-0.06）
   game.hunger = Math.max(0, game.hunger - minutes * 0.04);
   game.thirst = Math.max(0, game.thirst - minutes * 0.06);
-  // 时间超过24:00，自动进入下一天
   if (game.clock >= 1440) {
-    endDay();
-    return true; // 表示已进入下一天
+    if (game.location === 'safehouse') {
+      endDay();
+      return true; // 在避难所到午夜：睡觉进入下一天
+    }
+    // 在外地到午夜：不强制回避难所，时间封顶在深夜，弹窗让玩家抉择（只弹一次）
+    game.clock = 1439;
+    if (!game.midnightPrompted) {
+      game.midnightPrompted = true;
+      showMidnightChoice();
+    }
+    return false;
   }
   return false;
 }
 function getDangerMultiplier() {
+  if (game.deepNight) return 2.4;   // 午夜后仍滞留外地：极度危险
   return isNight() ? 1.6 : 1.0;
+}
+
+// ===== 午夜滞留外地抉择 =====
+function showMidnightChoice() {
+  const loc = LOCATIONS[game.location];
+  document.getElementById('midnight-desc').innerHTML =
+    '已经是午夜 24:00，你还滞留在 <b style="color:#e08070;">' + loc.name + '</b>。<br><br>' +
+    '深夜是丧尸活动最猖獗的时段，继续留下会使<b style="color:#e08070;">遭遇丧尸的概率大幅提升</b>，饥渴和精力也会持续消耗。<br><br>是否立即返回避难所？';
+  document.getElementById('midnight-overlay').classList.add('active');
+  try { playSfx('zombie_growl', 0.18); } catch(e) {}
+}
+function midnightGoHome() {
+  document.getElementById('midnight-overlay').classList.remove('active');
+  game.location = 'safehouse';
+  game.travelWeapons = [];
+  game.deepNight = false;
+  log('你趁着夜色匆匆撤回避难所，锁死房门后倒头睡去。', 'system');
+  renderAll();
+  endDay();
+}
+function midnightStay() {
+  document.getElementById('midnight-overlay').classList.remove('active');
+  game.deepNight = true;
+  log('你决定冒险在深夜继续搜索。黑暗中嘶吼声越来越密集，遭遇概率大幅提升，千万小心！', 'danger');
+  renderAll();
 }
 
 // ===================== 渲染 =====================
@@ -3244,7 +3296,7 @@ function addActionBtn(list, label, action, desc, cost) {
   btn.className = 'action-btn';
   btn.innerHTML = `${label} <span class="cost">${cost}</span><span class="hint">${desc}</span>`;
   btn.onclick = () => doAction(action);
-  if (game.ap <= 0 && !['craft','travel','backpack','diary','skills','achievements','cook','return','play_dog','feed_dog'].includes(action)) btn.disabled = true;
+  if (game.ap <= 0 && !['craft','travel','backpack','diary','skills','achievements','cook','return','play_dog','feed_dog','rest','wait'].includes(action)) btn.disabled = true;
   list.appendChild(btn);
 }
 
@@ -3642,7 +3694,7 @@ function returnToTitle() {
 function startNewGame() {
   // 先初始化游戏数据
   game = {
-    day: 1, maxDays: 30, ap: 10, maxAp: 10, clock: 360,
+    day: 1, maxDays: 30, ap: 16, maxAp: 16, clock: 360,
     hp: 100, maxHp: 100, hunger: 100, thirst: 100, energy: 100, mood: 100,
     infection: 0, location: 'safehouse', inventory: {}, weapon: null, armor: null,
     kills: 0, searched: {}, barricadeLevel: 0, inCombat: false, combatEnemy: null,
@@ -3707,7 +3759,7 @@ function loadGame() {
   if (game.armor === undefined) game.armor = null;
   if (game.combatStunned === undefined) game.combatStunned = 0;
   game.maxDays = 30;
-  game.maxAp = 10; if (!game.ap || game.ap > game.maxAp) game.ap = game.maxAp;
+  game.maxAp = 16; if (!game.ap || game.ap > game.maxAp) game.ap = game.maxAp;
   const w = WEATHERS.find(x => x.id === game.weather) || WEATHERS[0];
   const wel = document.getElementById('hud-weather');
   if (wel) wel.textContent = `${w.icon} ${w.name}`;
@@ -3771,8 +3823,7 @@ function doAction(action) {
 }
 
 function doRest() {
-  if (game.ap < 1) { log('行动点不足！', 'danger'); playSfx('error', 0.4); return; }
-  game.ap -= 1;
+  // 休息属于恢复行为，不消耗行动力，AP耗尽也可使用（耗时90分钟并消耗饥渴）
   game.energy = Math.min(100, game.energy + 40);
   // 休息期间身体仍在消耗
   game.hunger = Math.max(0, game.hunger - 6);
@@ -4054,10 +4105,11 @@ function selectMapLocation(id, markerEl) {
   if (searched > 0) {
     status += '已搜索' + searched + '次，剩余物资可能较少。';
   }
-  if (game.ap < 1) {
-    status += '行动点不足，无法前往。';
+  const _tAp = travelApCost(loc);
+  if (game.ap < _tAp) {
+    status += '行动点不足，前往需要' + _tAp + '点行动力。';
   } else {
-    status += '前往消耗1行动点。';
+    status += '单程约' + (loc.travelTime||30) + '分钟，消耗' + _tAp + '点行动力。';
   }
   if (mapPreviewNight && loc.danger >= 2) {
     status += ' 夜间前往极度危险！';
@@ -4160,10 +4212,15 @@ function cancelWeaponSelect() {
   _selectedWeapons = [];
 }
 
+// 前往地点按单程耗时折算行动力：每45分钟1点（至少1点），越远越耗AP
+function travelApCost(loc) {
+  return Math.max(1, Math.ceil((loc.travelTime || 30) / 45));
+}
 function travelTo(locId) {
-  if (game.ap < 1) { log('行动点不足，无法外出！', 'danger'); playSfx('error', 0.4); return; }
   const loc = LOCATIONS[locId];
-  game.ap -= 1;
+  const apCost = travelApCost(loc);
+  if (game.ap < apCost) { log('行动力不足！前往' + loc.name + '需要 ' + apCost + ' 点行动力（距离越远消耗越多）。', 'danger'); playSfx('error', 0.4); return; }
+  game.ap -= apCost;
   game.location = locId;
   const travelCost = Math.round((loc.travelStamina || 10) * (1 - getSkillBonus().travelReduction));
   game.energy = Math.max(0, game.energy - travelCost);
@@ -4171,7 +4228,7 @@ function travelTo(locId) {
   const actualTime = (loc.travelTime || 30) + weatherFx.travelMod;
   advanceTime(actualTime);
   const throughDanger = routePassesDanger(LOCATIONS.safehouse.mapPos.x, LOCATIONS.safehouse.mapPos.y, loc.mapPos.x, loc.mapPos.y);
-  log('你前往了' + loc.name + '。（耗时' + actualTime + '分钟' + (weatherFx.travelMod > 0 ? '，天气拖慢了行程' : '') + '，体力-' + travelCost + '）', 'system');
+  log('你前往了' + loc.name + '。（耗时' + actualTime + '分钟，行动力-' + apCost + '，体力-' + travelCost + (weatherFx.travelMod > 0 ? '，天气拖慢了行程' : '') + '）', 'system');
   if (throughDanger && isNight() && chance(0.4)) {
     if (game.dogCompanion && chance(0.5)) {
       log('你的狗突然低吼起来，你及时避开了一群游荡的丧尸！', 'good');
@@ -4204,6 +4261,8 @@ function doSearch(mode) {
     log('你快速搜索了' + loc.name + '...', 'system');
   }
 
+  // 若这次行动拖到午夜，弹出抉择后中断后续结算，避免与战斗叠加
+  if (document.getElementById('midnight-overlay').classList.contains('active')) { renderAll(); return; }
   // 搜索参数
   const sb = getSkillBonus();
   const weatherFx = getWeatherEffects();
@@ -4361,11 +4420,13 @@ function doSearch(mode) {
 
 function doReturn() {
   game.travelWeapons = [];
-  if (game.ap >= 1) {
-    game.ap -= 1;
+  const _here = LOCATIONS[game.location];
+  const _retAp = travelApCost(_here);
+  if (game.ap >= _retAp) {
+    game.ap -= _retAp;
     game.location = 'safehouse';
-    advanceTime(45);
-    log('你回到了安全屋，松了一口气。', 'good');
+    advanceTime(_here.travelTime || 45);
+    log('你回到了安全屋，松了一口气。（行动力-' + _retAp + '）', 'good');
     if (game.dogCompanion) log('你的狗欢快地摇着尾巴迎接你。', 'good');
     checkDayEnd();
     renderAll();
@@ -5329,10 +5390,10 @@ function endDay() {
   game.day++;
   game.ap = game.maxAp;
   game.clock = 360;
-  const _wasOutside = game.location !== 'safehouse';
   game.location = 'safehouse';
   game.travelWeapons = [];
-  if (_wasOutside) log('夜深了，你趁着黑暗摸回了避难所，锁好门沉沉睡去。', 'system');
+  game.deepNight = false;
+  game.midnightPrompted = false;
   game.dayEvents = [];
   game.dayKills = 0;
   game.combatStunned = 0;
