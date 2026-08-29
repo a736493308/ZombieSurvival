@@ -686,8 +686,16 @@ button {
   font-size: 30px; pointer-events: none; z-index: 60;
   text-shadow: 0 2px 4px rgba(0,0,0,0.9); animation: dmg-rise 0.8s ease-out forwards;
 }
-.dmg-float.enemy-dmg { color: #ffd24a; right: 40px; top: 10px; }
-.dmg-float.player-dmg { color: #ff5a4a; left: 50%; top: 40%; font-size: 34px; }
+.combat-player-stats {
+  display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;
+  background: rgba(0,0,0,0.5); border: 1px solid rgba(200,90,60,0.35);
+  border-radius: 4px; padding: 9px 12px; margin-bottom: 13px;
+}
+.cps-item { font-size: 13px; color: #a89a80; font-family: 'Noto Sans SC', sans-serif; white-space: nowrap; }
+.cps-item b { color: #ecd8b0; font-family: 'Share Tech Mono', monospace; font-size: 14px; margin-left: 4px; }
+.cps-item.low b { color: #ff6a5a; }
+.dmg-float.enemy-dmg { color: #ffd24a; left: 26px; top: -8px; font-size: 28px; }
+.dmg-float.player-dmg { color: #ff5a4a; right: 6px; top: -16px; font-size: 26px; }
 .dmg-float.miss { color: #bbb; font-size: 22px; }
 @keyframes dmg-rise {
   0% { opacity: 0; transform: translateY(12px) scale(0.6); }
@@ -1738,7 +1746,13 @@ button {
       </div>
     </div>
     <div class="combat-log" id="combat-log"></div>
-    <div class="combat-actions" id="combat-actions">
+    <div class="combat-player-stats" id="combat-player-stats">
+      <span class="cps-item">♥ 生命 <b id="cps-hp">100</b></span>
+      <span class="cps-item">⚡ 体力 <b id="cps-energy">100</b></span>
+      <span class="cps-item">🍖 饱食 <b id="cps-hunger">100</b></span>
+      <span class="cps-item">💧 口渴 <b id="cps-thirst">100</b></span>
+      <span class="cps-item">☣ 感染 <b id="cps-infection">0%</b></span>
+    </div>    <div class="combat-actions" id="combat-actions">
       <!-- 由JS动态生成武器攻击按钮 -->
     </div>
   </div>
@@ -2102,7 +2116,7 @@ const LOCATIONS = {
     danger: 1, dangerLabel: '低', actions: ['search', 'return'],
     loot: ['canned_food','instant_noodle','chips','soda','water_bottle','battery','cloth','chocolate','energy_bar','coffee','canned_meat'],
     resources: ['食物', '水'], enemies: '普通丧尸（少量）', mapPos: { x: 18, y: 22 },
-    travelTime: 20, travelStamina: 8,
+    travelTime: 40, travelStamina: 8,
   },
   apartment: {
     name: '公寓楼', bg: 'assets/apartment.jpg', icon: 'assets/icon_apartment.jpg',
@@ -2110,7 +2124,7 @@ const LOCATIONS = {
     danger: 1, dangerLabel: '低', actions: ['search', 'return'],
     loot: ['instant_noodle','chips','soda','water_bottle','cloth','wood_plank','baseball_bat','flashlight','chocolate','coffee','duct_tape','rope','vitamins'],
     resources: ['食物', '建材', '工具'], enemies: '普通丧尸（少量）', mapPos: { x: 80, y: 20 },
-    travelTime: 25, travelStamina: 10,
+    travelTime: 45, travelStamina: 10,
   },
   hospital: {
     name: '医院', bg: 'assets/hospital.jpg', icon: 'assets/icon_hospital.jpg',
@@ -2118,7 +2132,7 @@ const LOCATIONS = {
     danger: 2, dangerLabel: '中', actions: ['search', 'return'],
     loot: ['first_aid','bandage','painkillers','antibiotics','water_bottle','cloth','disinfectant','adrenaline','vitamins'],
     resources: ['药品', '水'], enemies: '普通丧尸、狂奔丧尸', mapPos: { x: 16, y: 80 },
-    travelTime: 30, travelStamina: 12,
+    travelTime: 55, travelStamina: 12,
   },
   parking: {
     name: '停车场', bg: 'assets/warehouse.jpg', icon: 'assets/icon_parking.jpg',
@@ -2126,7 +2140,7 @@ const LOCATIONS = {
     danger: 3, dangerLabel: '高', actions: ['search', 'return'],
     loot: ['pistol','ammo','metal_pipe','scrap_metal','wood_plank','canned_food','battery','wire','duct_tape','nails','rope'],
     resources: ['弹药', '武器', '材料'], enemies: '普通丧尸、狂奔丧尸、巨型丧尸', mapPos: { x: 84, y: 78 },
-    travelTime: 35, travelStamina: 15,
+    travelTime: 50, travelStamina: 15,
   },
   research_lab: {
     name: '研究所', bg: 'assets/research_lab.jpg', icon: 'assets/icon_research_lab.jpg',
@@ -2134,7 +2148,7 @@ const LOCATIONS = {
     danger: 3, dangerLabel: '高', actions: ['search', 'return'],
     loot: ['first_aid','bandage','antibiotics','adrenaline','disinfectant','battery','wire','flashlight','scrap_metal','vitamins','duct_tape','pistol','ammo'],
     resources: ['高级药品', '电子零件', '武器'], enemies: '狂奔丧尸、巨型丧尸', mapPos: { x: 62, y: 42 },
-    travelTime: 40, travelStamina: 18,
+    travelTime: 60, travelStamina: 18,
   },
   police_station: {
     name: '警察局', bg: 'assets/police_station.jpg', icon: 'assets/icon_police.jpg',
@@ -2142,7 +2156,7 @@ const LOCATIONS = {
     danger: 3, dangerLabel: '高', actions: ['search', 'return'],
     loot: ['pistol','ammo','metal_pipe','scrap_metal','first_aid','bandage','adrenaline','wire','duct_tape','nails','riot_armor','spiked_plank','painkillers'],
     resources: ['枪械', '弹药', '防弹衣'], enemies: '普通丧尸、狂奔丧尸、装甲丧尸', mapPos: { x: 55, y: 80 },
-    travelTime: 35, travelStamina: 15,
+    travelTime: 55, travelStamina: 15,
   },
 };
 
@@ -2393,6 +2407,9 @@ function getPhaseName() {
 }
 function advanceTime(minutes) {
   game.clock += minutes;
+  // 随时间自然代谢：行动越久越饥渴（每1分钟 饥饿-0.04、口渴-0.06）
+  game.hunger = Math.max(0, game.hunger - minutes * 0.04);
+  game.thirst = Math.max(0, game.thirst - minutes * 0.06);
   // 时间超过24:00，自动进入下一天
   if (game.clock >= 1440) {
     endDay();
@@ -2451,6 +2468,7 @@ function renderStats() {
   // 资源数量
   renderResources();
   // 夜晚模式
+  updateCombatPlayerStats();
   document.getElementById('game-screen').classList.toggle('night', isNight() && game.location !== 'safehouse');
 }
 
@@ -3185,14 +3203,14 @@ function renderActions() {
       addActionBtn(list, '和狗玩耍', 'play_dog', '抚摸伙伴，恢复精神', '0AP');
       addActionBtn(list, '喂狗', 'feed_dog', '给狗喂食，恢复饱腹度', '0AP');
     }
-    addActionBtn(list, '等待夜晚过去', 'wait', '跳过到下一天', '全部AP');
+    addActionBtn(list, '睡到天明', 'wait', '休息到次日清晨（任意时间可用）', '结束今天');
     addActionBtn(list, '打开地图', 'travel', '查看城市地图', '0AP');
     addActionBtn(list, '查看背包', 'backpack', '物品和装备', '0AP');
   } else {
     const searched = game.searched[game.location] || 0;
     const night = isNight();
-    addActionBtn(list, `快速搜索 (已搜${searched}次)`, 'search_quick', '20分钟 · 低风险 · 少量物资', '1AP');
-    addActionBtn(list, `彻底搜索`, 'search_thorough', '45分钟 · 高风险 · 更多物资' + (night ? ' · 夜晚稀有↑' : ''), '1AP');
+    addActionBtn(list, `快速搜索 (已搜${searched}次)`, 'search_quick', '40分钟 · 低风险 · 少量物资', '1AP');
+    addActionBtn(list, `彻底搜索`, 'search_thorough', '75分钟 · 高风险 · 更多物资' + (night ? ' · 夜晚稀有↑' : ''), '1AP');
     if (game.ap >= 1) {
       addActionBtn(list, '返回避难所', 'return', '回到安全屋', '1AP');
     } else {
@@ -3624,7 +3642,7 @@ function returnToTitle() {
 function startNewGame() {
   // 先初始化游戏数据
   game = {
-    day: 1, maxDays: 30, ap: 4, maxAp: 4, clock: 360,
+    day: 1, maxDays: 30, ap: 10, maxAp: 10, clock: 360,
     hp: 100, maxHp: 100, hunger: 100, thirst: 100, energy: 100, mood: 100,
     infection: 0, location: 'safehouse', inventory: {}, weapon: null, armor: null,
     kills: 0, searched: {}, barricadeLevel: 0, inCombat: false, combatEnemy: null,
@@ -3689,6 +3707,7 @@ function loadGame() {
   if (game.armor === undefined) game.armor = null;
   if (game.combatStunned === undefined) game.combatStunned = 0;
   game.maxDays = 30;
+  game.maxAp = 10; if (!game.ap || game.ap > game.maxAp) game.ap = game.maxAp;
   const w = WEATHERS.find(x => x.id === game.weather) || WEATHERS[0];
   const wel = document.getElementById('hud-weather');
   if (wel) wel.textContent = `${w.icon} ${w.name}`;
@@ -3773,18 +3792,19 @@ function doRest() {
     log('你休息了一会儿，恢复了精力和少量生命。', 'good');
   }
   if (game.hp <= 0) { gameOver('你在休息中因极度饥饿和脱水而死去。'); return; }
-  if (advanceTime(120)) return; // 跨天则结束
+  if (advanceTime(90)) return; // 跨天则结束
   checkDayEnd();
   renderAll();
 }
 
 function doWait() {
-  if (game.ap < 1) { log('行动点不足！', 'danger'); playSfx('error', 0.4); return; }
-  tutorialTip('wait', '等待夜晚过去会直接跳到第二天，恢复大量体力但精神下降较多，且饱食和口渴消耗更快。前期建议外出搜索物资而不是一直等待。');
-  log('你在不安中等待着夜幕降临...', 'system');
-  game.ap = 0;
+  tutorialTip('wait', '睡到天明会直接到第二天清晨，恢复较多体力但精神下降、饥渴消耗更快。建议先外出搜索、吃饱喝足再睡。');
+  const h = Math.floor(game.clock / 60);
+  if (h < 14) log('天色还早，但你决定躺下休息，一直睡到第二天清晨……', 'system');
+  else if (h < 19) log('你提前结束了今天，躺到床上睡到第二天清晨……', 'system');
+  else log('夜色已深，你熄灭蜡烛，睡到第二天清晨……', 'system');
+  game.waitedTonight = true; // 标记：睡觉过夜的恢复/消耗走 endDay 的 waitedTonight 分支
   game.clock = 1440;
-  game.waitedTonight = true; // 标记：等待过夜不消耗体力
   endDay();
 }
 
@@ -4176,11 +4196,11 @@ function doSearch(mode) {
 
   if (mode === 'thorough') {
     if (game.energy < 10) { log('精力不足，无法彻底搜索！', 'danger'); playSfx('error', 0.4); game.ap += 1; return; }
-    game.energy = Math.max(0, game.energy - 10);
-    advanceTime(45);
+    game.energy = Math.max(0, game.energy - 15);
+    advanceTime(75);
     log('你开始彻底搜索' + loc.name + '...', 'system');
   } else {
-    advanceTime(20);
+    advanceTime(40);
     log('你快速搜索了' + loc.name + '...', 'system');
   }
 
@@ -4344,7 +4364,7 @@ function doReturn() {
   if (game.ap >= 1) {
     game.ap -= 1;
     game.location = 'safehouse';
-    advanceTime(30);
+    advanceTime(45);
     log('你回到了安全屋，松了一口气。', 'good');
     if (game.dogCompanion) log('你的狗欢快地摇着尾巴迎接你。', 'good');
     checkDayEnd();
@@ -4353,7 +4373,7 @@ function doReturn() {
     // 0AP时疲惫返回：消耗额外体力，夜晚有风险
     game.location = 'safehouse';
     game.energy = Math.max(0, game.energy - 15);
-    advanceTime(40);
+    advanceTime(60);
     log('你精疲力尽地摸回了安全屋，几乎是瘫倒在门上。', 'good');
     if (isNight() && chance(0.3)) {
       log('黑暗中你被什么东西绊了一下，手背被抓破了皮。', 'danger');
@@ -4566,6 +4586,7 @@ function startCombat(enemyType) {
   document.getElementById('combat-enemy-name').textContent = template.name;
   document.getElementById('combat-log').innerHTML = '';
   updateEnemyHp();
+  updateCombatPlayerStats();
   combatLog(`一只${template.name}向你扑来！`);
   // 战斗BGM + 丧尸嘶吼
   playCombatBGM();
@@ -4718,6 +4739,7 @@ function combatAction(action, weaponId) {
     combatLog(`命中！造成${actualDmg}点伤害。`);
     playSfx('hit', 0.5);
     updateEnemyHp();
+  updateCombatPlayerStats();
     if (enemy.hp <= 0) {
       combatLog(`${enemy.name}被你击倒了！`);
       playSfx('enemy_die', 0.6);
@@ -4745,9 +4767,23 @@ function combatAction(action, weaponId) {
 }
 
 // 战斗打击反馈
-function spawnDmgFloat(cls, text) {
-  const container = document.querySelector('.combat-container');
+function updateCombatPlayerStats() {
+  const box = document.getElementById('combat-player-stats');
+  if (!box) return;
+  const _set = (id, v, low) => {
+    const el = document.getElementById(id);
+    if (el) { el.textContent = v; el.parentElement.classList.toggle('low', !!low); }
+  };
+  _set('cps-hp', Math.round(game.hp), game.hp < 30);
+  _set('cps-energy', Math.round(game.energy), game.energy < 25);
+  _set('cps-hunger', Math.round(game.hunger), game.hunger < 30);
+  _set('cps-thirst', Math.round(game.thirst), game.thirst < 30);
+  _set('cps-infection', Math.round(game.infection) + '%', game.infection > 60);
+}
+function spawnDmgFloat(cls, text, targetSel) {
+  const container = (targetSel && document.querySelector(targetSel)) || document.querySelector('.combat-container');
   if (!container) return;
+  if (getComputedStyle(container).position === 'static') container.style.position = 'relative';
   const el = document.createElement('div');
   el.className = 'dmg-float ' + cls;
   el.textContent = text;
@@ -4757,12 +4793,12 @@ function spawnDmgFloat(cls, text) {
 function enemyHitFx(dmg) {
   const img = document.getElementById('combat-enemy-img');
   if (img) { img.classList.remove('hit-flash'); void img.offsetWidth; img.classList.add('hit-flash'); }
-  spawnDmgFloat('enemy-dmg', '-' + dmg);
+  spawnDmgFloat('enemy-dmg', '-' + dmg, '.combat-enemy');
 }
 function playerHitFx(dmg) {
   const box = document.querySelector('.combat-container');
   if (box) { box.classList.remove('shake'); void box.offsetWidth; box.classList.add('shake'); }
-  spawnDmgFloat('player-dmg', '-' + dmg);
+  spawnDmgFloat('player-dmg', '-' + dmg, '#combat-player-stats');
 }
 
 function enemyAttack() {
@@ -4817,6 +4853,7 @@ function useCombatItem(id) {
   playSfx('hit', 0.7);
   game.combatStunned = 1;
   updateEnemyHp();
+  updateCombatPlayerStats();
   if (game.combatEnemy.hp <= 0) {
     combatLog(game.combatEnemy.name + '被烧成了焦炭！');
     playSfx('enemy_die', 0.6);
@@ -5100,7 +5137,7 @@ function doBarricade() {
   if (metal >= 1) game.inventory.scrap_metal -= 1;
   game.ap -= 1;
   game.barricadeLevel = (game.barricadeLevel || 0) + 1;
-  if (advanceTime(30)) return; // 跨天则结束
+  if (advanceTime(45)) return; // 跨天则结束
   log(`你用木板${metal >= 1 ? '和金属' : ''}加固了门窗，防御提升至${game.barricadeLevel}级。`, 'good');
   playSfx('confirm', 0.3);
   checkAchievements();
@@ -5113,7 +5150,7 @@ function doCollectWater() {
   game.waterCollectCount = game.waterCollectCount || 0;
   if (game.waterCollectCount >= 2) { log('能装水的容器都已经装满了，等下次下雨吧。', 'system'); return; }
   game.ap -= 1;
-  advanceTime(20);
+  advanceTime(30);
   addItem('dirty_water', 1);
   game.waterCollectCount++;
   const left = 2 - game.waterCollectCount;
@@ -5162,7 +5199,7 @@ function doCookItem(sourceId, resultId, resultName) {
   if (!hasItem(sourceId)) { playSfx('error', 0.4); return; }
   removeItem(sourceId);
   addItem(resultId);
-  if (advanceTime(15)) { closeCookMenu(); return; }
+  if (advanceTime(20)) { closeCookMenu(); return; }
   log('你用小炉子做了一份' + resultName + '，温暖的感觉让你精神一振。', 'good');
   playSfx('confirm', 0.3);
   closeCookMenu();
@@ -5249,7 +5286,7 @@ function doFeedDogItem(itemId, amount) {
   log('你把' + ITEMS[itemId].name + '分给了狗，它狼吞虎咽地吃完，摇着尾巴蹭你的手。狗饱腹度+' + amount + '，心情+3。', 'good');
   playSfx('pet_food', 0.4);
   closeFeedDog();
-  advanceTime(5);
+  advanceTime(10);
   checkDayEnd();
   renderAll();
 }
@@ -5272,7 +5309,7 @@ function doCraft(recipeId) {
     addItem(r.result, r.resultCount);
   }
   playSfx('confirm', 0.5);
-  if (advanceTime(15)) return; // 跨天则结束
+  if (advanceTime(20)) return; // 跨天则结束
   renderCraftList(); // 刷新
   renderStats();
   saveGame();
@@ -5280,8 +5317,8 @@ function doCraft(recipeId) {
 
 // ===================== 天数结算 =====================
 function checkDayEnd() {
-  if (game.ap > 0) return;
-  endDay();
+  // AP耗尽不再强制跳天：提示主动睡觉，让时间在24小时内自然流动
+  if (game.ap <= 0) log('行动力已耗尽，你精疲力尽。点击「睡到天明」结束今天。', 'system');
 }
 
 function endDay() {
@@ -5292,6 +5329,10 @@ function endDay() {
   game.day++;
   game.ap = game.maxAp;
   game.clock = 360;
+  const _wasOutside = game.location !== 'safehouse';
+  game.location = 'safehouse';
+  game.travelWeapons = [];
+  if (_wasOutside) log('夜深了，你趁着黑暗摸回了避难所，锁好门沉沉睡去。', 'system');
   game.dayEvents = [];
   game.dayKills = 0;
   game.combatStunned = 0;
