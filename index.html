@@ -2506,14 +2506,14 @@ function formatTime(mins) {
 }
 function isNight() {
   const h = Math.floor(game.clock / 60) % 24;
-  return h >= 19 || h < 6;
+  return h >= 21 || h < 6;
 }
 function getPhaseName() {
   const h = Math.floor(game.clock / 60) % 24;
   if (h >= 6 && h < 12) return '上午';
   if (h >= 12 && h < 14) return '中午';
   if (h >= 14 && h < 18) return '下午';
-  if (h >= 18 && h < 19) return '黄昏';
+  if (h >= 18 && h < 21) return '傍晚';
   return '夜晚';
 }
 function advanceTime(minutes) {
@@ -2538,7 +2538,7 @@ function advanceTime(minutes) {
 }
 function getDangerMultiplier() {
   if (game.deepNight) return 2.4;   // 午夜后仍滞留外地：极度危险
-  return isNight() ? 1.6 : 1.0;
+  return isNight() ? 2.0 : 1.0;
 }
 
 // ===== 午夜滞留外地抉择 =====
@@ -3168,7 +3168,9 @@ function triggerSafehouseEvent() {
   if (bonus.badLuckReduction > 0 && chance(bonus.badLuckReduction)) {
     pool = pool.filter(e => e.id !== 'zombie_door');
   }
-  // 幸存者拜访保持普通权重（不再额外加权），属于稀有事件
+  // 幸存者拜访权重×2：比普通事件略常见，但不至于频繁
+  const survEv = pool.find(e => e.id === 'survivor_knock');
+  if (survEv) pool.push(survEv);
   const ev = pool[rand(0, pool.length - 1)];
   const sePortrait = document.getElementById('se-portrait');
   const seWho = document.getElementById('se-who');
@@ -3386,8 +3388,8 @@ function renderActions() {
   } else {
     const searched = game.searched[game.location] || 0;
     const night = isNight();
-    addActionBtn(list, `快速搜索 (已搜${searched}次)`, 'search_quick', '40分钟 · 低风险 · 少量物资', '1AP');
-    addActionBtn(list, `彻底搜索`, 'search_thorough', '75分钟 · 高风险 · 更多物资' + (night ? ' · 夜晚稀有↑' : ''), '2AP');
+    addActionBtn(list, `快速搜索 (已搜${searched}次)`, 'search_quick', '40分钟 · 1AP · 体力-5 · 低风险、少量物资', '1AP');
+    addActionBtn(list, `彻底搜索`, 'search_thorough', '75分钟 · 2AP · 体力-15 · 高风险、更多物资（需体力≥15）' + (night ? ' · 夜晚稀有↑、危险↑' : ''), '2AP');
     if (game.ap >= 1) {
       addActionBtn(list, '返回避难所', 'return', '回到安全屋', '1-2AP');
     } else {
@@ -4399,22 +4401,33 @@ function travelTo(locId) {
 
 function doSearch(mode) {
   const searchAp = (mode === 'thorough') ? 2 : 1;
-  if (game.ap < searchAp) { log('行动力不足！' + (mode === 'thorough' ? '彻底搜索' : '快速搜索') + '需要 ' + searchAp + ' 点行动力。', 'danger'); playSfx('error', 0.4); return; }
-  game.ap -= searchAp;
+  const actName = (mode === 'thorough' ? '彻底搜索' : '快速搜索');
   const loc = LOCATIONS[game.location];
+  // 体力（精力）与行动力是两种资源：彻底搜索更费力，体力不足直接中止，且不消耗行动力
+  const energyCost = (mode === 'thorough') ? 15 : 5;
+  const minEnergy = (mode === 'thorough') ? 15 : 0;
+  if (game.energy < minEnergy) {
+    log('体力不足，无法彻底搜索：需要至少15点精力（当前' + Math.round(game.energy) + '）。请先「休息恢复」或使用提神物品，本次不消耗行动力。', 'danger');
+    playSfx('error', 0.4); return;
+  }
+  if (game.ap < searchAp) {
+    log('行动力不足，' + actName + '需要 ' + searchAp + ' 点行动力（当前' + game.ap + '点）。行动力可通过「休息恢复」（每次+1）或睡到下一天回复。', 'danger');
+    playSfx('error', 0.4); return;
+  }
+  // 体力、行动力都满足，才统一扣除
+  game.ap -= searchAp;
+  game.energy = Math.max(0, game.energy - energyCost);
   game.searched[game.location] = (game.searched[game.location] || 0) + 1;
   const searched = game.searched[game.location];
   const night = isNight();
   const dangerMult = getDangerMultiplier();
 
   if (mode === 'thorough') {
-    if (game.energy < 10) { log('精力不足，无法彻底搜索！', 'danger'); playSfx('error', 0.4); game.ap += 1; return; }
-    game.energy = Math.max(0, game.energy - 15);
     advanceTime(75);
-    log('你开始彻底搜索' + loc.name + '...', 'system');
+    log('你开始彻底搜索' + loc.name + '...（行动力-2，体力-15）', 'system');
   } else {
     advanceTime(40);
-    log('你快速搜索了' + loc.name + '...', 'system');
+    log('你快速搜索了' + loc.name + '...（行动力-1，体力-5）', 'system');
   }
 
   // 若这次行动拖到午夜，弹出抉择后中断后续结算，避免与战斗叠加
@@ -4513,7 +4526,7 @@ function doSearch(mode) {
     if (id === 'ammo') return rand(2, 4); // 子弹每次找到2-4发
     if (id === 'steel_plate') return 1; // 钢材每次仅获得1块
     if (item.type === 'weapon' || item.type === 'key') return 1;
-    if (item.type === 'consumable' && !(item.effect.hunger || item.effect.thirst)) return 1;
+    if (item.type === 'consumable' && !(item.effect && (item.effect.hunger || item.effect.thirst))) return 1;
     return (mode === 'thorough' ? rand(1, 2) : 1) + sb.lootBonus + (mode === 'thorough' ? sb.searchExtra : 0);
   }
 
@@ -5951,12 +5964,12 @@ function toggleMute() {
   bgmMuted = (bgmVolume === 0);
   bgmMenu.volume = currentBGM === 'menu' ? bgmVolume : 0;
   bgmSafehouse.volume = currentBGM === 'safehouse' ? bgmVolume : 0;
-  bgmCombat.volume = currentBGM === 'combat' ? bgmVolume : 0;
+  bgmCombat.volume = currentBGM === 'combat' ? bgmVolume * 0.55 : 0;
   document.getElementById('mute-btn').textContent = BGM_VOL_ICONS[bgmVolIdx];
   document.getElementById('mute-btn').title = '音量: ' + Math.round(bgmVolume * 100) + '%';
   if (!bgmMuted) {
     const curBgm = currentBGM === 'menu' ? bgmMenu : currentBGM === 'safehouse' ? bgmSafehouse : currentBGM === 'combat' ? bgmCombat : null;
-    if (curBgm && curBgm.paused) { curBgm.volume = bgmVolume; const _p = curBgm.play(); if (_p && _p.catch) _p.catch(() => {}); }
+    if (curBgm && curBgm.paused) { curBgm.volume = currentBGM === 'combat' ? bgmVolume * 0.55 : bgmVolume; const _p = curBgm.play(); if (_p && _p.catch) _p.catch(() => {}); }
   }
 }
 
@@ -5971,7 +5984,7 @@ function playCombatBGM() {
   if (currentBGM === 'safehouse') fadeOut(bgmSafehouse, 300, 'safehouse');
   if (currentBGM === 'menu') fadeOut(bgmMenu, 300, 'menu');
   currentBGM = 'combat';
-  setTimeout(() => fadeIn(bgmCombat, bgmVolume, 800, 'combat'), 200);
+  setTimeout(() => fadeIn(bgmCombat, bgmVolume * 0.55, 800, 'combat'), 200);
 }
 
 function stopCombatBGM() {
@@ -5996,7 +6009,7 @@ setInterval(() => {
   if (currentBGM === 'menu') { if (document.getElementById('title-screen').style.display === 'none') return; }
   else { if (document.getElementById('game-screen').style.display !== 'block') return; }
   if (currentBGM === 'safehouse' && game && game.inCombat) return;
-  if (a.paused || a.ended) { a.volume = bgmVolume; const p = a.play(); if (p && p.catch) p.catch(() => {}); }
+  if (a.paused || a.ended) { a.volume = currentBGM === 'combat' ? bgmVolume * 0.55 : bgmVolume; const p = a.play(); if (p && p.catch) p.catch(() => {}); }
 }, 2000);
 
 // ===== 音效系统（预加载+对象池，消除延迟） =====
@@ -6226,7 +6239,7 @@ const TUTORIAL_STEPS = [
   { id: 'welcome', text: '欢迎来到《末日余生》！\n\n你需要在这间公寓里存活30天，等待军方救援。\n\n左侧是你的生命、体力、饱食、口渴、精神和感染值。右上角显示天数、时间和天气。\n\n点击"下一步"了解基本操作。', btn: '下一步' },
   { id: 'search', text: '🗺 点击右侧"打开地图"可以前往城市中的各个地点搜索物资。\n\n不同地点产出不同：便利店食物多，医院药品多，警察局有枪械。\n\n每次搜索消耗1点行动力（AP），每天有4点AP。彻底搜索比快速搜索找到更多物资，但更危险。', btn: '下一步' },
   { id: 'survive', text: '🍖 饱食度和口渴度会随时间下降，归零后会持续掉血，越低掉得越快。\n\n在背包中使用食物和水来恢复状态。点击左侧"制作台"可以加热食物获得更好的效果，也可以制作武器和药品。', btn: '下一步' },
-  { id: 'night', text: '🌙 夜晚（20:00-06:00）丧尸更活跃，外出搜索更危险，但也可能发现稀有物资。\n\n可以在避难所选择"休息"恢复体力，或"等待夜晚过去"直接跳到第二天。\n\n注意管理好状态再行动！', btn: '开始生存' },
+  { id: 'night', text: '🌙 夜晚（21:00-06:00）丧尸更活跃，外出搜索更危险，但也可能发现稀有物资。\n\n可以在避难所选择"休息"恢复体力，或"等待夜晚过去"直接跳到第二天。\n\n注意管理好状态再行动！', btn: '开始生存' },
 ];
 
 function showTutorialAsk() {
