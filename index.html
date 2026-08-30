@@ -1209,6 +1209,9 @@ button {
 }
 #midnight-overlay.active { display: flex; animation: ov-fade 0.25s ease-out; }
 #midnight-overlay.active > div { animation: ov-pop 0.3s cubic-bezier(0.2,0.85,0.3,1.12); }
+#night-travel-overlay { display:none; position:absolute; inset:0; z-index:125; background:rgba(10,0,0,0.88); align-items:center; justify-content:center; backdrop-filter:blur(3px); }
+#night-travel-overlay.active { display:flex; animation:ov-fade 0.25s ease-out; }
+#night-travel-overlay.active > div { animation:ov-pop 0.3s cubic-bezier(0.2,0.85,0.3,1.12); }
 #barricade-overlay { display:none; position:absolute; inset:0; z-index:130; background:rgba(0,0,0,0.82); align-items:center; justify-content:center; backdrop-filter:blur(3px); }
 #barricade-overlay.active { display:flex; animation:ov-fade 0.22s ease-out; }
 .bar-panel { width:min(440px,92%); max-height:88%; overflow-y:auto; background:linear-gradient(145deg,#2a2218,#1a1510); border:1px solid rgba(180,140,80,0.55); border-radius:8px; padding:22px 24px; box-shadow:0 10px 44px rgba(0,0,0,0.85); }
@@ -2009,6 +2012,17 @@ button {
     <div class="se-choices">
       <button class="se-choice-btn" onclick="midnightGoHome()">立即返回避难所（安全）</button>
       <button class="se-choice-btn" style="border-color:rgba(200,60,40,0.6);color:#e08070;" onclick="midnightStay()">冒险继续留下（危险度大幅提升）</button>
+    </div>
+  </div>
+</div>
+<!-- 夜间外出危险确认弹窗 -->
+<div id="night-travel-overlay">
+  <div class="shelter-event-panel" style="border-color:rgba(200,130,40,0.6);">
+    <div class="se-title" style="color:#e0a04a;">夜间外出 · 危险提示</div>
+    <div class="se-desc" id="night-travel-desc"></div>
+    <div class="se-choices">
+      <button class="se-choice-btn" style="border-color:rgba(200,130,40,0.6);" onclick="confirmNightTravel()">仍要摸黑前往</button>
+      <button class="se-choice-btn" style="border-color:rgba(120,160,120,0.6);color:#9fc09a;" onclick="cancelNightTravel()">取消，留在避难所</button>
     </div>
   </div>
 </div>
@@ -3370,14 +3384,14 @@ function renderActions() {
   list.innerHTML = '';
   
   if (game.location === 'safehouse') {
-    addActionBtn(list, '休息恢复', 'rest', '休息2小时，回复精力、生命与1点行动力', '0AP');
+    addActionBtn(list, '休息恢复', 'rest', '休息2小时，回复精力、生命与2点行动力', '0AP');
     addActionBtn(list, '加固避难所', 'barricade', '消耗建材提升防御', '1AP');
     if (getWeatherEffects().canCollectWater) {
       const rainMax = hasItem('rain_barrel') ? 4 : 2;
       const wLeft = rainMax - (game.waterCollectCount || 0);
-      addActionBtn(list, '收集雨水' + (wLeft < rainMax ? '(' + wLeft + '次)' : ''), 'collect_water', '雨天接水，每次1瓶，最多' + rainMax + '次' + (hasItem('rain_barrel') ? '（集水桶扩容）' : ''), '1AP');
+      addActionBtn(list, '收集雨水' + (wLeft < rainMax ? '(' + wLeft + '次)' : ''), 'collect_water', '雨天接水，每次1瓶，最多' + rainMax + '次' + (hasItem('rain_barrel') ? '（集水桶扩容）' : ''), '0AP');
     }
-    addActionBtn(list, '加热食物', 'cook', '加热食材提升效果', '1AP');
+    addActionBtn(list, '加热食物', 'cook', '加热食材提升效果（不耗行动力）', '0AP');
     if (game.dogCompanion) {
       addActionBtn(list, '和狗玩耍', 'play_dog', '抚摸伙伴，恢复精神', '1AP');
       addActionBtn(list, '喂狗', 'feed_dog', '给狗喂食，恢复饱腹度', '1AP');
@@ -3423,7 +3437,7 @@ function addActionBtn(list, label, action, desc, cost) {
   btn.className = 'action-btn';
   btn.innerHTML = `${label} <span class="cost">${cost}</span><span class="hint">${desc}</span>`;
   btn.onclick = () => doAction(action);
-  if (game.ap <= 0 && !['craft','travel','backpack','diary','skills','achievements','cook','return','feed_dog','rest','wait'].includes(action)) btn.disabled = true;
+  if (game.ap <= 0 && !['craft','travel','backpack','diary','skills','achievements','cook','collect_water','return','feed_dog','rest','wait'].includes(action)) btn.disabled = true;
   list.appendChild(btn);
 }
 
@@ -3964,9 +3978,9 @@ function doAction(action) {
 }
 
 function doRest() {
-  // 休息属于恢复行为，不消耗行动力，AP耗尽也可使用，每次回复1点行动力（休息2小时并承担代谢）
+  // 休息属于恢复行为，不消耗行动力，AP耗尽也可使用，每次回复2点行动力（休息2小时并承担代谢）
   game.energy = Math.min(100, game.energy + 40);
-  game.ap = Math.min(game.maxAp, game.ap + 1); // 每次休息恢复1点行动力
+  game.ap = Math.min(game.maxAp, game.ap + 2); // 每次休息恢复2点行动力
   // 仅承担这2小时的自然代谢（单位消耗低于睡到天明）
   let restDmg = 0;
   if (game.hunger <= 0) restDmg += 15;
@@ -3980,7 +3994,7 @@ function doRest() {
     log('你休息了一会儿，但饥饿和口渴让你更加虚弱...', 'danger');
   } else {
     game.hp = Math.min(game.maxHp, game.hp + 10);
-    log('你小憩了两小时，恢复了精力和少量生命，行动力+1。', 'good');
+    log('你小憩了两小时，恢复了精力和少量生命，行动力+2。', 'good');
   }
   if (game.hp <= 0) { gameOver('你在休息中因极度饥饿和脱水而死去。'); return; }
   if (advanceTime(120)) return; // 休息2小时，跨天则结束
@@ -4264,8 +4278,34 @@ function selectMapLocation(id, markerEl) {
 
 function confirmTravel() {
   if (!selectedMapLocation || game.ap < 1) return;
-  // 弹出武器选择
+  // 夜间（21点后）外出先弹危险确认
+  if (isNight()) { showNightTravelConfirm(selectedMapLocation); return; }
   openWeaponSelect(selectedMapLocation);
+}
+
+let _nightTravelLoc = null;
+function showNightTravelConfirm(locId) {
+  _nightTravelLoc = locId;
+  const loc = LOCATIONS[locId];
+  const dangerText = ['安全','低','中','高','极高'][loc.danger] || '未知';
+  let warn = '';
+  if (game.energy < 25) warn = '<br><span style="color:#e08070;">你当前体力偏低，夜间外出极易陷入险境。</span>';
+  document.getElementById('night-travel-desc').innerHTML =
+    '现在是夜间 <b style="color:#e0a04a;">' + formatTime(game.clock) + '</b>，你打算前往 <b style="color:#e0a04a;">' + loc.name + '</b>（危险度：' + dangerText + '）。<br><br>' +
+    '夜色中丧尸活动猖獗，<b style="color:#e08070;">途中遭遇、搜索时被袭击的概率都会大幅提高</b>，越远、越危险的地点越凶险。' + warn +
+    '<br><br>确定要摸黑出发吗？';
+  document.getElementById('night-travel-overlay').classList.add('active');
+  try { playSfx('zombie_growl', 0.15); } catch(e) {}
+}
+function confirmNightTravel() {
+  document.getElementById('night-travel-overlay').classList.remove('active');
+  const loc = _nightTravelLoc; _nightTravelLoc = null;
+  if (loc) openWeaponSelect(loc);
+}
+function cancelNightTravel() {
+  document.getElementById('night-travel-overlay').classList.remove('active');
+  _nightTravelLoc = null;
+  log('你决定不冒险，继续留在避难所。', 'system');
 }
 
 let _pendingTravelLoc = null;
@@ -4411,7 +4451,7 @@ function doSearch(mode) {
     playSfx('error', 0.4); return;
   }
   if (game.ap < searchAp) {
-    log('行动力不足，' + actName + '需要 ' + searchAp + ' 点行动力（当前' + game.ap + '点）。行动力可通过「休息恢复」（每次+1）或睡到下一天回复。', 'danger');
+    log('行动力不足，' + actName + '需要 ' + searchAp + ' 点行动力（当前' + game.ap + '点）。行动力可通过「休息恢复」（每次+2）或睡到下一天回复。', 'danger');
     playSfx('error', 0.4); return;
   }
   // 体力、行动力都满足，才统一扣除
@@ -4608,7 +4648,7 @@ function doReturn() {
     game.location = 'safehouse';
     game.energy = Math.max(0, game.energy - 15);
     if (advanceTime(60)) { renderAll(); return; }
-    log('你精疲力尽地摸回了安全屋，几乎瘫倒在门上。行动力并未恢复，可「休息恢复」（回复1点行动力）或「睡到天明」。', 'good');
+    log('你精疲力尽地摸回了安全屋，几乎瘫倒在门上。行动力并未恢复，可「休息恢复」（回复2点行动力）或「睡到天明」。', 'good');
     rollTravelAmbush(_fromId, 'safehouse');
     if (game.dogCompanion) log('你的狗焦急地等在门口，见你回来才放松下来。', 'good');
     checkDayEnd();
@@ -5454,12 +5494,10 @@ function confirmBarricade() {
 }
 
 function doCollectWater() {
-  if (game.ap < 1) { log('行动点不足！', 'danger'); playSfx('error', 0.4); return; }
   if (!getWeatherEffects().canCollectWater) { log('现在没有下雨，无法收集雨水。', 'danger'); return; }
   game.waterCollectCount = game.waterCollectCount || 0;
   const rainMax = hasItem('rain_barrel') ? 4 : 2;
   if (game.waterCollectCount >= rainMax) { log('能装水的容器都已经装满了，等下次下雨吧。', 'system'); return; }
-  game.ap -= 1;
   advanceTime(30);
   addItem('dirty_water', 1);
   game.waterCollectCount++;
@@ -5507,9 +5545,7 @@ function doCook() {
 }
 
 function doCookItem(sourceId, resultId, resultName) {
-  if (game.ap < 1) { log('行动力不足，无法加热食物！', 'danger'); playSfx('error', 0.4); return; }
   if (!hasItem(sourceId)) { playSfx('error', 0.4); return; }
-  game.ap -= 1;
   removeItem(sourceId);
   addItem(resultId);
   game.totalCooked = (game.totalCooked||0) + 1;
@@ -5653,7 +5689,7 @@ function doCraft(recipeId) {
 function checkDayEnd() {
   // AP耗尽不再强制跳天：提示主动睡觉，让时间在24小时内自然流动
   if (game.ap <= 0) {
-    if (game.location === 'safehouse') log('行动力已耗尽。可以「休息恢复」（耗时2小时、回复1点行动力）继续行动，或「睡到天明」结束今天。', 'system');
+    if (game.location === 'safehouse') log('行动力已耗尽。可以「休息恢复」（耗时2小时、回复2点行动力）继续行动，或「睡到天明」结束今天。', 'system');
     else log('行动力已耗尽，无法继续搜索。请「返回避难所」，再通过休息恢复行动力。', 'system');
   }
 }
