@@ -4309,7 +4309,6 @@ function showNightTravelConfirm(locId) {
     '夜色中丧尸活动猖獗，<b style="color:#e08070;">途中遭遇、搜索时被袭击的概率都会大幅提高</b>，越远、越危险的地点越凶险。' + warn +
     '<br><br>确定要摸黑出发吗？';
   document.getElementById('night-travel-overlay').classList.add('active');
-  try { playSfx('zombie_growl', 0.15); } catch(e) {}
 }
 function confirmNightTravel() {
   document.getElementById('night-travel-overlay').classList.remove('active');
@@ -6102,7 +6101,9 @@ function playSfx(name, volume) {
     }
     sfx = sfxCache[name];
   }
-  sfx.volume = volume || 0.6;
+  let _v = volume || 0.6;
+  if (name === 'zombie_growl') _v *= 0.5;
+  sfx.volume = _v;
   sfx.currentTime = 0;
   sfx.play().catch(() => {});
 }
