@@ -2181,11 +2181,6 @@ const RECIPES = [
   // ===== 新增配方 =====
   { id: 'spiked_plank', name: '钉刺木板', category: '武器', mats: { wood_plank: 1, nails: 2 }, result: 'spiked_plank', resultCount: 1 },
   { id: 'boil_water', name: '烧开雨水', category: '生存', mats: { dirty_water: 1, cloth: 1 }, result: 'water_bottle', resultCount: 1 },
-  { id: 'cook_stew', name: '炖罐头', category: '生存', mats: { canned_food: 1 }, result: 'hot_stew', resultCount: 1 },
-  { id: 'cook_meat', name: '香煎午餐肉', category: '生存', mats: { canned_meat: 1 }, result: 'fried_meat', resultCount: 1 },
-  { id: 'cook_cocoa', name: '煮热可可', category: '生存', mats: { chocolate: 1 }, result: 'hot_cocoa', resultCount: 1 },
-  { id: 'cook_noodles', name: '煮热汤面', category: '生存', mats: { instant_noodle: 1 }, result: 'hot_noodles', resultCount: 1 },
-  { id: 'cook_coffee', name: '煮热咖啡', category: '生存', mats: { coffee: 1 }, result: 'hot_coffee', resultCount: 1 },
   // ===== 制作台扩展配方 =====
   { id: 'craft_cloth_armor', name: '缝制加厚布衣', category: '护甲', mats: { cloth: 3, duct_tape: 1 }, result: 'cloth_armor', resultCount: 1 },
   { id: 'craft_metal_armor', name: '打造金属片护甲', category: '护甲', mats: { scrap_metal: 3, wire: 2, duct_tape: 1 }, result: 'metal_armor', resultCount: 1 },
@@ -3378,8 +3373,9 @@ function renderActions() {
     addActionBtn(list, '休息恢复', 'rest', '恢复精力和少量生命', '0AP');
     addActionBtn(list, '加固避难所', 'barricade', '消耗建材提升防御', '1AP');
     if (getWeatherEffects().canCollectWater) {
-      const wLeft = 2 - (game.waterCollectCount || 0);
-      addActionBtn(list, '收集雨水' + (wLeft < 2 ? '(' + wLeft + '次)' : ''), 'collect_water', '雨天接水，每次1瓶，最多2次', '1AP');
+      const rainMax = hasItem('rain_barrel') ? 4 : 2;
+      const wLeft = rainMax - (game.waterCollectCount || 0);
+      addActionBtn(list, '收集雨水' + (wLeft < rainMax ? '(' + wLeft + '次)' : ''), 'collect_water', '雨天接水，每次1瓶，最多' + rainMax + '次' + (hasItem('rain_barrel') ? '（集水桶扩容）' : ''), '1AP');
     }
     addActionBtn(list, '加热食物', 'cook', '加热食材提升效果', '1AP');
     if (game.dogCompanion) {
@@ -3819,6 +3815,7 @@ function backToTitle() {
 function returnToTitle() {
   saveGame();
   stopSafehouseBGM();
+  playMenuBGM();
   if (window.combatBgm) { try { window.combatBgm.pause(); } catch(e){} }
   document.getElementById('game-screen').style.display = 'none';
   document.getElementById('title-screen').style.display = 'flex';
@@ -5862,62 +5859,65 @@ const BGM_VOL_LEVELS = [0, 0.15, 0.3, 0.5];
 const BGM_VOL_ICONS = ['🔇', '🔈', '🔉', '🔊'];
 let bgmVolIdx = 2;
 
-function fadeIn(audio, targetVol, duration) {
+// 每条BGM音轨一个淡变令牌：新的淡入/淡出会让旧定时器失效，避免快速切换场景时旧淡出把刚响起的新BGM暂停掉
+const bgmFadeToken = { menu: 0, safehouse: 0, combat: 0 };
+function fadeIn(audio, targetVol, duration, key) {
   if (bgmMuted) return;
+  if (key) bgmFadeToken[key] = (bgmFadeToken[key] || 0) + 1;
+  const myToken = key ? bgmFadeToken[key] : 0;
   audio.volume = 0;
-  const playPromise = audio.play();
-  if (playPromise !== undefined) {
-    playPromise.catch(() => {
-      // 自动播放被阻止，等待用户交互
-    });
-  }
+  const pp = audio.play();
+  if (pp && pp.catch) pp.catch(() => {});
   const steps = 20;
   const stepTime = duration / steps;
   const volStep = targetVol / steps;
   let i = 0;
   const fade = setInterval(() => {
+    if (key && bgmFadeToken[key] !== myToken) { clearInterval(fade); return; }
     i++;
     audio.volume = Math.min(targetVol, volStep * i);
     if (i >= steps) clearInterval(fade);
   }, stepTime);
 }
 
-function fadeOut(audio, duration) {
+function fadeOut(audio, duration, key) {
+  if (key) bgmFadeToken[key] = (bgmFadeToken[key] || 0) + 1;
+  const myToken = key ? bgmFadeToken[key] : 0;
   const steps = 15;
   const stepTime = duration / steps;
   const startVol = audio.volume;
   const volStep = startVol / steps;
   let i = 0;
   const fade = setInterval(() => {
+    if (key && bgmFadeToken[key] !== myToken) { clearInterval(fade); return; }
     i++;
     audio.volume = Math.max(0, startVol - volStep * i);
     if (i >= steps) {
       clearInterval(fade);
-      audio.pause();
-      audio.currentTime = 0;
+      // 只有本次淡出仍是最新动作时才真正暂停，避免误杀随后启动的淡入
+      if (!key || bgmFadeToken[key] === myToken) { audio.pause(); audio.currentTime = 0; }
     }
   }, stepTime);
 }
-
 function playMenuBGM() {
   if (currentBGM === 'menu') return;
-  if (currentBGM === 'safehouse') fadeOut(bgmSafehouse, 500);
+  if (currentBGM === 'safehouse') fadeOut(bgmSafehouse, 500, 'safehouse');
   currentBGM = 'menu';
-  setTimeout(() => fadeIn(bgmMenu, bgmVolume, 1500), 300);
+  setTimeout(() => fadeIn(bgmMenu, bgmVolume, 1500, 'menu'), 300);
 }
 
 function playSafehouseBGM() {
   if (currentBGM === 'safehouse') return;
   if (game.inCombat) return; // 战斗中不切换BGM，避免覆盖战斗BGM状态
-  if (currentBGM === 'menu') fadeOut(bgmMenu, 500);
-  if (currentBGM === 'combat') fadeOut(bgmCombat, 500);
+  if (currentBGM === 'menu') fadeOut(bgmMenu, 500, 'menu');
+  if (currentBGM === 'combat') fadeOut(bgmCombat, 500, 'combat');
   currentBGM = 'safehouse';
-  setTimeout(() => fadeIn(bgmSafehouse, bgmVolume, 1500), 300);
+  setTimeout(() => fadeIn(bgmSafehouse, bgmVolume, 1500, 'safehouse'), 300);
 }
 
 function stopSafehouseBGM() {
   if (currentBGM === 'safehouse') {
-    fadeOut(bgmSafehouse, 500);
+    fadeOut(bgmSafehouse, 500, 'safehouse');
     currentBGM = null;
   }
 }
@@ -5939,6 +5939,10 @@ function toggleMute() {
   bgmCombat.volume = currentBGM === 'combat' ? bgmVolume : 0;
   document.getElementById('mute-btn').textContent = BGM_VOL_ICONS[bgmVolIdx];
   document.getElementById('mute-btn').title = '音量: ' + Math.round(bgmVolume * 100) + '%';
+  if (!bgmMuted) {
+    const curBgm = currentBGM === 'menu' ? bgmMenu : currentBGM === 'safehouse' ? bgmSafehouse : currentBGM === 'combat' ? bgmCombat : null;
+    if (curBgm && curBgm.paused) { curBgm.volume = bgmVolume; const _p = curBgm.play(); if (_p && _p.catch) _p.catch(() => {}); }
+  }
 }
 
 // ===== 战斗BGM =====
@@ -5949,15 +5953,15 @@ bgmCombat.preload = 'auto';
 
 function playCombatBGM() {
   if (currentBGM === 'combat') return;
-  if (currentBGM === 'safehouse') fadeOut(bgmSafehouse, 300);
-  if (currentBGM === 'menu') fadeOut(bgmMenu, 300);
+  if (currentBGM === 'safehouse') fadeOut(bgmSafehouse, 300, 'safehouse');
+  if (currentBGM === 'menu') fadeOut(bgmMenu, 300, 'menu');
   currentBGM = 'combat';
-  setTimeout(() => fadeIn(bgmCombat, bgmVolume, 800), 200);
+  setTimeout(() => fadeIn(bgmCombat, bgmVolume, 800, 'combat'), 200);
 }
 
 function stopCombatBGM() {
   if (currentBGM === 'combat') {
-    fadeOut(bgmCombat, 400);
+    fadeOut(bgmCombat, 400, 'combat');
     currentBGM = null;
     // 回到避难所后恢复避难所BGM
     if (game.location === 'safehouse') {
@@ -5965,6 +5969,20 @@ function stopCombatBGM() {
     }
   }
 }
+// BGM 保活看门狗：每 2 秒检查当前应播放的 BGM 是否被意外暂停（自动播放拦截/循环断点/快速切换竞态），自动恢复
+setInterval(() => {
+  if (bgmMuted || !bgmVolume) return;
+  let a = null;
+  if (currentBGM === 'menu') a = bgmMenu;
+  else if (currentBGM === 'safehouse') a = bgmSafehouse;
+  else if (currentBGM === 'combat') a = bgmCombat;
+  if (!a) return;
+  // 界面一致性校验，避免在错误的界面拉起音乐
+  if (currentBGM === 'menu') { if (document.getElementById('title-screen').style.display === 'none') return; }
+  else { if (document.getElementById('game-screen').style.display !== 'block') return; }
+  if (currentBGM === 'safehouse' && game && game.inCombat) return;
+  if (a.paused || a.ended) { a.volume = bgmVolume; const p = a.play(); if (p && p.catch) p.catch(() => {}); }
+}, 2000);
 
 // ===== 音效系统（预加载+对象池，消除延迟） =====
 const SFX_NAMES = ['click','confirm','error','hit','hurt','enemy_die','gunshot','zombie_growl',
