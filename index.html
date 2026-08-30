@@ -2205,7 +2205,7 @@ const LOCATIONS = {
     desc: '街角的便利店，玻璃门碎了一地，货架东倒西歪，收银台后溅着发黑的血迹。大部分食物已被洗劫，但后排货架底下也许还压着些罐头和水。',
     danger: 1, dangerLabel: '低', actions: ['search', 'return'],
     loot: ['canned_food','instant_noodle','chips','soda','water_bottle','battery','cloth','chocolate','energy_bar','coffee','canned_meat'],
-    resources: ['食物', '水'], enemies: '普通丧尸（少量）', mapPos: { x: 18, y: 22 },
+    resources: ['食物', '水'], enemies: '普通丧尸（少量）', mapPos: { x: 16, y: 40 },
     travelTime: 40, travelStamina: 8,
   },
   apartment: {
@@ -2213,7 +2213,7 @@ const LOCATIONS = {
     desc: '昏暗的居民楼走廊，墙上留着深深的抓痕，几扇房门虚掩着。住户逃离时散落了满地生活用品，衣柜和厨房橱柜里可能还留着食物和建材。',
     danger: 1, dangerLabel: '低', actions: ['search', 'return'],
     loot: ['instant_noodle','chips','soda','water_bottle','cloth','wood_plank','baseball_bat','flashlight','chocolate','coffee','duct_tape','rope','vitamins'],
-    resources: ['食物', '建材', '工具'], enemies: '普通丧尸（少量）', mapPos: { x: 80, y: 20 },
+    resources: ['食物', '建材', '工具'], enemies: '普通丧尸（少量）', mapPos: { x: 60, y: 36 },
     travelTime: 45, travelStamina: 10,
   },
   hospital: {
@@ -2221,7 +2221,7 @@ const LOCATIONS = {
     desc: '医院走廊里弥漫着消毒水和腐臭的混合气味，日光灯忽明忽暗，病床上残留着干涸的血迹。药房的铁柜被撬开了一半，里面可能还有没被拿走的药品。',
     danger: 2, dangerLabel: '中', actions: ['search', 'return'],
     loot: ['first_aid','bandage','painkillers','antibiotics','water_bottle','cloth','disinfectant','adrenaline','vitamins'],
-    resources: ['药品', '水'], enemies: '普通丧尸、狂奔丧尸', mapPos: { x: 16, y: 80 },
+    resources: ['药品', '水'], enemies: '普通丧尸、狂奔丧尸', mapPos: { x: 6, y: 88 },
     travelTime: 55, travelStamina: 12,
   },
   parking: {
@@ -2229,7 +2229,7 @@ const LOCATIONS = {
     desc: '废弃的地下停车场，混凝土立柱间散落着生锈的车辆，应急灯发出微弱的光。一辆警车车门大开，后座上似乎有武器和弹药，但黑暗深处有什么东西在移动。',
     danger: 3, dangerLabel: '高', actions: ['search', 'return'],
     loot: ['pistol','ammo','metal_pipe','scrap_metal','wood_plank','canned_food','battery','wire','duct_tape','nails','rope'],
-    resources: ['弹药', '武器', '材料'], enemies: '普通丧尸、狂奔丧尸、巨型丧尸', mapPos: { x: 84, y: 78 },
+    resources: ['弹药', '武器', '材料'], enemies: '普通丧尸、狂奔丧尸、巨型丧尸', mapPos: { x: 70, y: 76 },
     travelTime: 50, travelStamina: 15,
   },
   research_lab: {
@@ -2237,7 +2237,7 @@ const LOCATIONS = {
     desc: '城市边缘的生物研究所，大门紧锁，走廊里散落着文件和破碎的培养皿，实验室的玻璃柜全部碎裂。这里可能藏着高级药品和电子设备，但冷库门后传来沉重的撞击声。',
     danger: 3, dangerLabel: '高', actions: ['search', 'return'],
     loot: ['first_aid','bandage','antibiotics','adrenaline','disinfectant','battery','wire','flashlight','scrap_metal','vitamins','duct_tape','pistol','ammo'],
-    resources: ['高级药品', '电子零件', '武器'], enemies: '狂奔丧尸、巨型丧尸', mapPos: { x: 62, y: 42 },
+    resources: ['高级药品', '电子零件', '武器'], enemies: '狂奔丧尸、巨型丧尸', mapPos: { x: 84, y: 30 },
     travelTime: 60, travelStamina: 18,
   },
   police_station: {
@@ -2245,7 +2245,7 @@ const LOCATIONS = {
     desc: '城区的警察局，大门半开着，院子里停着两辆布满弹孔的巡逻车。军械库的铁门似乎被炸开了，但里面可能还有剩下的武器和防弹衣。',
     danger: 3, dangerLabel: '高', actions: ['search', 'return'],
     loot: ['pistol','ammo','metal_pipe','scrap_metal','first_aid','bandage','adrenaline','wire','duct_tape','nails','riot_armor','spiked_plank','painkillers'],
-    resources: ['枪械', '弹药', '防弹衣'], enemies: '普通丧尸、狂奔丧尸、装甲丧尸', mapPos: { x: 55, y: 80 },
+    resources: ['枪械', '弹药', '防弹衣'], enemies: '普通丧尸、狂奔丧尸、装甲丧尸', mapPos: { x: 56, y: 92 },
     travelTime: 55, travelStamina: 15,
   },
 };
@@ -2253,8 +2253,8 @@ const LOCATIONS = {
 // 地图危险区域
 const DANGER_ZONES = [
   { x: 50, y: 50, r: 18, nightR: 28, dayGrowth: 0.5 },
-  { x: 82, y: 75, r: 10, nightR: 18, dayGrowth: 0.8 },
-  { x: 62, y: 42, r: 8,  nightR: 16, dayGrowth: 1.0 },
+  { x: 72, y: 74, r: 10, nightR: 18, dayGrowth: 0.8 },
+  { x: 82, y: 32, r: 8,  nightR: 16, dayGrowth: 1.0 },
 ];
 
 function getDangerZoneRadius(zone) {
@@ -3168,9 +3168,7 @@ function triggerSafehouseEvent() {
   if (bonus.badLuckReduction > 0 && chance(bonus.badLuckReduction)) {
     pool = pool.filter(e => e.id !== 'zombie_door');
   }
-  // 幸存者拜访事件权重×3，提高遭遇率
-  const survEv = pool.find(e => e.id === 'survivor_knock');
-  if (survEv) pool.push(survEv, survEv);
+  // 幸存者拜访保持普通权重（不再额外加权），属于稀有事件
   const ev = pool[rand(0, pool.length - 1)];
   const sePortrait = document.getElementById('se-portrait');
   const seWho = document.getElementById('se-who');
@@ -3370,7 +3368,7 @@ function renderActions() {
   list.innerHTML = '';
   
   if (game.location === 'safehouse') {
-    addActionBtn(list, '休息恢复', 'rest', '恢复精力和少量生命', '0AP');
+    addActionBtn(list, '休息恢复', 'rest', '休息2小时，回复精力、生命与1点行动力', '0AP');
     addActionBtn(list, '加固避难所', 'barricade', '消耗建材提升防御', '1AP');
     if (getWeatherEffects().canCollectWater) {
       const rainMax = hasItem('rain_barrel') ? 4 : 2;
@@ -3964,9 +3962,10 @@ function doAction(action) {
 }
 
 function doRest() {
-  // 休息属于恢复行为，不消耗行动力，AP耗尽也可使用（耗时90分钟并消耗饥渴）
+  // 休息属于恢复行为，不消耗行动力，AP耗尽也可使用，每次回复1点行动力（休息2小时并承担代谢）
   game.energy = Math.min(100, game.energy + 40);
-  // 短时打盹不再额外扣饥渴，仅承担90分钟自然代谢（单位消耗低于睡到天明）
+  game.ap = Math.min(game.maxAp, game.ap + 1); // 每次休息恢复1点行动力
+  // 仅承担这2小时的自然代谢（单位消耗低于睡到天明）
   let restDmg = 0;
   if (game.hunger <= 0) restDmg += 15;
   else if (game.hunger <= 15) restDmg += 8;
@@ -3979,10 +3978,10 @@ function doRest() {
     log('你休息了一会儿，但饥饿和口渴让你更加虚弱...', 'danger');
   } else {
     game.hp = Math.min(game.maxHp, game.hp + 10);
-    log('你休息了一会儿，恢复了精力和少量生命。', 'good');
+    log('你小憩了两小时，恢复了精力和少量生命，行动力+1。', 'good');
   }
   if (game.hp <= 0) { gameOver('你在休息中因极度饥饿和脱水而死去。'); return; }
-  if (advanceTime(90)) return; // 跨天则结束
+  if (advanceTime(120)) return; // 休息2小时，跨天则结束
   checkDayEnd();
   renderAll();
 }
@@ -4355,6 +4354,29 @@ function cancelWeaponSelect() {
 function travelApCost(loc) {
   return Math.max(1, Math.ceil((loc.travelTime || 30) / 45));
 }
+
+// 途中遭遇丧尸：白天概率低、夜间显著提高，途经危险区/路程越远/午夜后概率越高；返回true表示已进入战斗
+function rollTravelAmbush(fromId, toId) {
+  const a = LOCATIONS[fromId] || LOCATIONS.safehouse;
+  const b = LOCATIONS[toId] || LOCATIONS.safehouse;
+  const through = routePassesDanger(a.mapPos.x, a.mapPos.y, b.mapPos.x, b.mapPos.y);
+  const night = isNight();
+  let p = night ? 0.26 : 0.08;
+  if (through) p += night ? 0.2 : 0.1;
+  const t = Math.max(a.travelTime || 0, b.travelTime || 0);
+  p += Math.min(0.1, (t - 40) / 200);
+  if (game.deepNight) p += 0.15;
+  p = Math.min(0.85, p);
+  if (!chance(p)) return false;
+  if (game.dogCompanion && chance(0.45)) {
+    log('你的狗突然低吼示警，你绕开了路上一群游荡的丧尸。', 'good');
+    return false;
+  }
+  const enemy = (night || game.deepNight) && chance(0.45) ? 'fast' : 'normal';
+  log(night ? '夜色里一道影子猛地扑来——途中遭遇丧尸！' : '街角那具"尸体"突然爬起——途中遭遇丧尸！', 'danger');
+  startCombat(enemy);
+  return true;
+}
 function travelTo(locId) {
   const loc = LOCATIONS[locId];
   const apCost = travelApCost(loc);
@@ -4368,13 +4390,7 @@ function travelTo(locId) {
   advanceTime(actualTime);
   const throughDanger = routePassesDanger(LOCATIONS.safehouse.mapPos.x, LOCATIONS.safehouse.mapPos.y, loc.mapPos.x, loc.mapPos.y);
   log('你前往了' + loc.name + '。（耗时' + actualTime + '分钟，行动力-' + apCost + '，体力-' + travelCost + (weatherFx.travelMod > 0 ? '，天气拖慢了行程' : '') + '）', 'system');
-  if (throughDanger && isNight() && chance(0.4)) {
-    if (game.dogCompanion && chance(0.5)) {
-      log('你的狗突然低吼起来，你及时避开了一群游荡的丧尸！', 'good');
-    } else {
-      log('途中你听到了附近有嘶吼声...', 'danger');
-    }
-  } else {
+  if (!rollTravelAmbush('safehouse', locId)) {
     log('这里暂时安静，搜索物资时要小心。', 'system');
   }
   if (game.dogCompanion) log('你的狗警惕地嗅着空气，跟在你身后。', 'system');
@@ -4564,31 +4580,27 @@ function doSearch(mode) {
 function doReturn() {
   game.travelWeapons = [];
   const _here = LOCATIONS[game.location];
+  const _fromId = game.location;
   const _retAp = travelApCost(_here);
   if (game.ap >= _retAp) {
     game.ap -= _retAp;
     game.location = 'safehouse';
-    advanceTime(_here.travelTime || 45);
+    if (advanceTime(_here.travelTime || 45)) { renderAll(); return; } // 路程已过午夜则自然进入下一天
     log('你回到了安全屋，松了一口气。（行动力-' + _retAp + '）', 'good');
+    rollTravelAmbush(_fromId, 'safehouse');
     if (game.dogCompanion) log('你的狗欢快地摇着尾巴迎接你。', 'good');
     checkDayEnd();
-    renderAll();
   } else {
-    // 0AP时疲惫返回：消耗额外体力，夜晚有风险
+    // 0AP疲惫返回：消耗额外体力，但不再直接跳到下一天、也不回满行动力
     game.location = 'safehouse';
     game.energy = Math.max(0, game.energy - 15);
-    advanceTime(60);
-    log('你精疲力尽地摸回了安全屋，几乎是瘫倒在门上。', 'good');
-    if (isNight() && chance(0.3)) {
-      log('黑暗中你被什么东西绊了一下，手背被抓破了皮。', 'danger');
-      game.hp = Math.max(1, game.hp - 8);
-      game.infection = Math.min(100, game.infection + 5);
-    }
+    if (advanceTime(60)) { renderAll(); return; }
+    log('你精疲力尽地摸回了安全屋，几乎瘫倒在门上。行动力并未恢复，可「休息恢复」（回复1点行动力）或「睡到天明」。', 'good');
+    rollTravelAmbush(_fromId, 'safehouse');
     if (game.dogCompanion) log('你的狗焦急地等在门口，见你回来才放松下来。', 'good');
-    // 0AP返回后直接结束当天
-    endDay();
-    renderAll();
+    checkDayEnd();
   }
+  renderAll();
 }
 
 function triggerRandomEvent() {
@@ -5627,7 +5639,10 @@ function doCraft(recipeId) {
 // ===================== 天数结算 =====================
 function checkDayEnd() {
   // AP耗尽不再强制跳天：提示主动睡觉，让时间在24小时内自然流动
-  if (game.ap <= 0) log('行动力已耗尽，你精疲力尽。点击「睡到天明」结束今天。', 'system');
+  if (game.ap <= 0) {
+    if (game.location === 'safehouse') log('行动力已耗尽。可以「休息恢复」（耗时2小时、回复1点行动力）继续行动，或「睡到天明」结束今天。', 'system');
+    else log('行动力已耗尽，无法继续搜索。请「返回避难所」，再通过休息恢复行动力。', 'system');
+  }
 }
 
 function endDay() {
