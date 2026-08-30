@@ -2123,6 +2123,16 @@ const ITEMS = {
   nails: { name: '钉子', desc: '一把铁钉，加固避难所必备。', type: 'material', icon: 'assets/item_nails.jpg' },
   rope: { name: '绳子', desc: '结实的尼龙绳，可用于制作和攀爬。', type: 'material', icon: 'assets/item_rope.jpg' },
   steel_plate: { name: '钢材', desc: '厚重的工业钢板，高级加固的核心材料，停车场、研究所偶尔能拆到。', type: 'material', icon: 'assets/item_steel_plate.jpg' },
+  // ===== 制作台扩展：护具 / 武器 / 工具 / 补给 =====
+  dirty_water: { name: '未处理雨水', desc: '接来的浑浊雨水，直接喝有感染风险，建议烧开或用滤水器过滤。恢复20口渴。', type: 'consumable', effect: { thirst: 20 }, rawWater: true, icon: 'assets/item_dirty_water.jpg' },
+  cloth_armor: { name: '加厚布衣', desc: '多层厚布用胶带缠成的简易护具，能略微缓冲撕咬。减伤10%。', type: 'armor', defense: 0.10, icon: 'assets/item_cloth_armor.jpg' },
+  metal_armor: { name: '金属片护甲', desc: '废金属片用铁丝和胶带固定在衣物上，比布衣坚固，逊于警用防弹衣。减伤22%。', type: 'armor', defense: 0.22, icon: 'assets/item_metal_armor.jpg' },
+  rebar_spear: { name: '钢筋长矛', desc: '一端磨尖、以钢材加固的螺纹钢筋，攻击距离远。伤害30，命中78%。', type: 'weapon', damage: 30, hitRate: 0.78, icon: 'assets/item_rebar_spear.jpg' },
+  water_filter: { name: '简易滤水器', desc: '布料、木炭与金属筒做成的滤水器，携带后直接喝雨水的感染风险大幅降低（被动生效，无需使用）。', type: 'tool', icon: 'assets/item_water_filter.jpg' },
+  rain_barrel: { name: '集水桶', desc: '放在窗沿的简易集水装置，携带后每次下雨可收集的雨水从2瓶提升到4瓶（被动生效）。', type: 'tool', icon: 'assets/item_rain_barrel.jpg' },
+  mixed_rations: { name: '混合行军粮', desc: '压缩饼干、坚果和肉干重新打包的高密度口粮，便于外出携带。恢复45饥饿、10精力、5精神。', type: 'consumable', effect: { hunger: 45, energy: 10, mood: 5 }, icon: 'assets/item_mixed_rations.jpg' },
+  homemade_antiseptic: { name: '自制消毒剂', desc: '生理盐水配煮过的布条制成的伤口消毒用品，效果介于消毒酒精和抗生素之间。感染值-18%，生命+5。', type: 'consumable', effect: { infection: -18, hp: 5 }, icon: 'assets/item_homemade_antiseptic.jpg' },
+  radio_antenna: { name: '增强无线电天线', desc: '手工绑制的伸缩天线，装到收音机上后，可接收到两个遥远的隐藏短波频率。', type: 'tool', icon: 'assets/item_radio_antenna.jpg' },
   spiked_pipe: { name: '钉刺水管', desc: '缠满钉子的水管，自制近战利器。伤害25，命中率75%。', type: 'weapon', damage: 25, hitRate: 0.75, icon: 'assets/item_spiked_pipe.jpg' },
   claw_hammer: { name: '铁锤', desc: '工地用的羊角锤，趁手的防身武器。伤害18，命中率85%。', type: 'weapon', damage: 18, hitRate: 0.85, icon: 'assets/item_claw_hammer.jpg' },
   walkie_talkie: { name: '对讲机', desc: '一台没电的警用对讲机，也许以后能派上用场。', type: 'misc', icon: 'assets/item_walkie_talkie.jpg' },
@@ -2138,7 +2148,6 @@ const ITEMS = {
   hot_cocoa: { name: '热可可', desc: '融化巧克力煮成的热饮，温暖身心。恢复20口渴，心情+30，精力+5。', type: 'consumable', effect: { thirst: 20, mood: 30, energy: 5 }, icon: 'assets/item_hot_cocoa.jpg' },
   hot_noodles: { name: '热汤面', desc: '一碗热气腾腾的泡面，汤都喝光了。恢复30饥饿，20口渴，心情+10。', type: 'consumable', effect: { hunger: 30, thirst: 20, mood: 10 }, icon: 'assets/item_hot_noodles.jpg' },
   hot_coffee: { name: '热咖啡', desc: '滚烫的黑咖啡，苦但提神。恢复10口渴，精力+40，心情+5。', type: 'consumable', effect: { thirst: 10, energy: 40, mood: 5 }, icon: 'assets/item_hot_coffee.jpg' },
-  dirty_water: { name: '雨水', desc: '收集的雨水，需要烧开才能安全饮用。直接饮用恢复25口渴，但有较高感染风险。', type: 'consumable', effect: { thirst: 25, infection: 20 }, icon: 'assets/item_water_bottle.jpg' },
 };
 
 // ===== 全局掉落表：所有地点都可能出各类物资，但概率不同 =====
@@ -2177,6 +2186,15 @@ const RECIPES = [
   { id: 'cook_cocoa', name: '煮热可可', category: '生存', mats: { chocolate: 1 }, result: 'hot_cocoa', resultCount: 1 },
   { id: 'cook_noodles', name: '煮热汤面', category: '生存', mats: { instant_noodle: 1 }, result: 'hot_noodles', resultCount: 1 },
   { id: 'cook_coffee', name: '煮热咖啡', category: '生存', mats: { coffee: 1 }, result: 'hot_coffee', resultCount: 1 },
+  // ===== 制作台扩展配方 =====
+  { id: 'craft_cloth_armor', name: '缝制加厚布衣', category: '护甲', mats: { cloth: 3, duct_tape: 1 }, result: 'cloth_armor', resultCount: 1 },
+  { id: 'craft_metal_armor', name: '打造金属片护甲', category: '护甲', mats: { scrap_metal: 3, wire: 2, duct_tape: 1 }, result: 'metal_armor', resultCount: 1 },
+  { id: 'craft_rebar_spear', name: '锻造钢筋长矛', category: '武器', mats: { steel_plate: 1, scrap_metal: 2, nails: 2 }, result: 'rebar_spear', resultCount: 1 },
+  { id: 'craft_water_filter', name: '制作简易滤水器', category: '生存', mats: { cloth: 2, rope: 1, scrap_metal: 1 }, result: 'water_filter', resultCount: 1 },
+  { id: 'craft_rain_barrel', name: '制作集水桶', category: '生存', mats: { scrap_metal: 2, cloth: 1, rope: 1 }, result: 'rain_barrel', resultCount: 1 },
+  { id: 'craft_mixed_rations', name: '打包混合行军粮', category: '生存', mats: { crackers: 1, nuts: 1, beef_jerky: 1 }, result: 'mixed_rations', resultCount: 1 },
+  { id: 'craft_antiseptic', name: '配制自制消毒剂', category: '医疗', mats: { saline: 1, cloth: 2 }, result: 'homemade_antiseptic', resultCount: 1 },
+  { id: 'craft_radio_antenna', name: '组装增强天线', category: '生存', mats: { wire: 2, steel_plate: 1, scrap_metal: 1, duct_tape: 1 }, result: 'radio_antenna', resultCount: 1 },
 ];
 
 const LOCATIONS = {
@@ -2608,7 +2626,7 @@ function renderResources() {
   const food = (game.inventory.canned_food||0) + (game.inventory.instant_noodle||0) + (game.inventory.chips||0) + (game.inventory.canned_meat||0) + (game.inventory.chocolate||0) + (game.inventory.energy_bar||0) + (game.inventory.hot_stew||0) + (game.inventory.fried_meat||0) + (game.inventory.hot_noodles||0);
   const water = (game.inventory.water_bottle||0) + (game.inventory.soda||0) + (game.inventory.dirty_water||0) + (game.inventory.coffee||0) + (game.inventory.hot_cocoa||0) + (game.inventory.hot_coffee||0);
   const medicine = (game.inventory.first_aid||0) + (game.inventory.bandage||0) + (game.inventory.painkillers||0) + (game.inventory.antibiotics||0) + (game.inventory.disinfectant||0) + (game.inventory.adrenaline||0) + (game.inventory.vitamins||0);
-  const material = (game.inventory.wood_plank||0) + (game.inventory.scrap_metal||0) + (game.inventory.cloth||0) + (game.inventory.wire||0) + (game.inventory.duct_tape||0) + (game.inventory.nails||0) + (game.inventory.rope||0);
+  const material = (game.inventory.wood_plank||0) + (game.inventory.scrap_metal||0) + (game.inventory.cloth||0) + (game.inventory.wire||0) + (game.inventory.duct_tape||0) + (game.inventory.nails||0) + (game.inventory.rope||0) + (game.inventory.steel_plate||0) + (game.inventory.battery||0);
   const ammo = game.inventory.ammo || 0;
   const res = { food, water, medicine, material, ammo };
   Object.entries(res).forEach(([key, val]) => {
@@ -2639,6 +2657,9 @@ const radioChannels = [
   { name: '求救信号', freq: '89.2', file: 'assets/radio_distress.wav', signal: 2, hidden: true },
   { name: '旧日点唱机', freq: '103.1', file: 'assets/radio_music.wav', signal: 3, hidden: true },
   { name: '儿童频率', freq: '98.6', file: 'assets/radio_child.wav', signal: 1, hidden: true },
+  // 增强天线专属：只能通过制作增强无线电天线解锁，不会被随机搜索发现
+  { name: '北部隔离区短波', freq: '91.7', file: 'assets/radio_hidden_antenna_1.wav', signal: 1, hidden: true, antennaOnly: true },
+  { name: '鹰巢七号航空频率', freq: '113.5', file: 'assets/radio_hidden_antenna_2.wav', signal: 1, hidden: true, antennaOnly: true },
 ];
 const radioState = { on: false, channel: 0, audio: null, isTuning: false };
 
@@ -2923,7 +2944,7 @@ const SAFEHOUSE_EVENTS = [
           game.mood = Math.min(100, game.mood + 5);
           const undiscovered = [];
           for (let i = 0; i < radioChannels.length; i++) {
-            if (!game.radioFound.includes(i)) undiscovered.push(i);
+            if (!game.radioFound.includes(i) && !radioChannels[i].antennaOnly) undiscovered.push(i);
           }
           if (undiscovered.length > 0 && chance(0.4)) {
             discoverRadioFrequency();
@@ -3067,7 +3088,7 @@ const SAFEHOUSE_EVENTS = [
           game.mood = Math.min(100, game.mood + 10);
           const undiscovered = [];
           for (let i = 0; i < radioChannels.length; i++) {
-            if (!game.radioFound.includes(i)) undiscovered.push(i);
+            if (!game.radioFound.includes(i) && !radioChannels[i].antennaOnly) undiscovered.push(i);
           }
           if (undiscovered.length > 0) {
             const n = Math.min(2, undiscovered.length);
@@ -3415,6 +3436,7 @@ function getItemCategory(id) {
   if (!item) return '材料';
   if (item.type === 'weapon') return '武器';
   if (item.type === 'armor') return '护甲';
+  if (item.type === 'tool') return '杂物';
   if (item.type === 'misc') return '杂物';
   if (item.type === 'consumable') {
     if (item.combat) return '武器';
@@ -4692,7 +4714,7 @@ function triggerStrayDogExplore(locName) {
 function discoverRadioFrequency() {
   const undiscovered = [];
   for (let i = 0; i < radioChannels.length; i++) {
-    if (!game.radioFound.includes(i)) undiscovered.push(i);
+    if (!game.radioFound.includes(i) && !radioChannels[i].antennaOnly) undiscovered.push(i);
   }
   if (undiscovered.length === 0) return;
   const chIdx = undiscovered[rand(0, undiscovered.length-1)];
@@ -4726,6 +4748,17 @@ function useItem(id) {
     if (item.effect.infection) {
       // 感染值变化不受治疗技能加成（正面和负面都按原始值）
       game.infection = Math.max(0, Math.min(100, game.infection + item.effect.infection));
+    }
+    // 直接喝未处理雨水有感染风险；携带简易滤水器后风险大幅降低
+    if (item.rawWater) {
+      const filtered = hasItem('water_filter');
+      if (chance(filtered ? 0.08 : 0.35)) {
+        const g = filtered ? 3 : 8;
+        game.infection = Math.min(100, game.infection + g);
+        log(filtered ? '滤水器滤掉了大部分杂质，但仍有少量残留，感染值+' + g + '%。' : '雨水没有烧开，浑浊的水让你肠胃不适，感染值+' + g + '%。', 'danger');
+      } else {
+        log(filtered ? '滤水器滤掉了泥沙和杂质，这口水安全多了。' : '你冒险喝下了没处理的雨水，但愿别出事。', 'system');
+      }
     }
     removeItem(id);
     // 构建数值变化描述
@@ -5087,7 +5120,7 @@ function openCraft() {
 }
 function renderCraftList() {
   const tabs = document.getElementById('craft-cat-tabs');
-  const cats = ['医疗','武器','生存'];
+  const cats = ['医疗','武器','护甲','生存'];
   tabs.innerHTML = cats.map(c => {
     const cnt = RECIPES.filter(r => r.category === c).length;
     return `<div class="cat-tab ${craftCategory===c?'active':''}" onclick="craftCategory='${c}';renderCraftList()">${c}<span class="cat-count">${cnt}</span></div>`;
@@ -5402,13 +5435,14 @@ function doCollectWater() {
   if (game.ap < 1) { log('行动点不足！', 'danger'); playSfx('error', 0.4); return; }
   if (!getWeatherEffects().canCollectWater) { log('现在没有下雨，无法收集雨水。', 'danger'); return; }
   game.waterCollectCount = game.waterCollectCount || 0;
-  if (game.waterCollectCount >= 2) { log('能装水的容器都已经装满了，等下次下雨吧。', 'system'); return; }
+  const rainMax = hasItem('rain_barrel') ? 4 : 2;
+  if (game.waterCollectCount >= rainMax) { log('能装水的容器都已经装满了，等下次下雨吧。', 'system'); return; }
   game.ap -= 1;
   advanceTime(30);
   addItem('dirty_water', 1);
   game.waterCollectCount++;
-  const left = 2 - game.waterCollectCount;
-  log('你用瓶子接了一瓶雨水。' + (left > 0 ? '还能再接' + left + '瓶。记得烧开或用布料过滤后再喝。' : '容器都装满了。'), 'good');
+  const left = rainMax - game.waterCollectCount;
+  log('你用瓶子接了一瓶雨水。' + (left > 0 ? '还能再接' + left + '瓶。记得烧开，或用滤水器过滤后再喝。' : '容器都装满了。'), 'good');
   checkDayEnd();
   renderAll();
 }
@@ -5565,6 +5599,11 @@ function doCraft(recipeId) {
   if (game.ap < 1) { log('行动力不足，无法制作！', 'danger'); playSfx('error', 0.4); return; }
   const canCraft = Object.entries(r.mats).every(([id, c]) => hasItem(id, c));
   if (!canCraft) { playSfx('error', 0.4); return; }
+  // 增强天线：隐藏频道已全部解锁后无需重复制作
+  if (r.result === 'radio_antenna') {
+    const remain = radioChannels.filter((cc, ii) => cc.antennaOnly && !game.radioFound.includes(ii)).length;
+    if (remain === 0) { log('增强天线已经安装过了，收音机信号已是最佳。', 'system'); playSfx('error', 0.3); return; }
+  }
   game.ap -= 1;
   Object.entries(r.mats).forEach(([id, c]) => removeItem(id, c));
   game.totalCrafted = (game.totalCrafted||0) + 1;
@@ -5572,6 +5611,11 @@ function doCraft(recipeId) {
   if (r.result === 'barricade_upgrade') {
     game.barricadeLevel++;
     log(`安全屋加固到了${game.barricadeLevel}级！夜间更安全。`, 'good');
+  } else if (r.result === 'radio_antenna') {
+    addItem('radio_antenna', 1);
+    const newly = [];
+    radioChannels.forEach((cc, ii) => { if (cc.antennaOnly && !game.radioFound.includes(ii)) { game.radioFound.push(ii); newly.push(cc.name); } });
+    log('你把自制增强天线接到收音机上，缓缓转动旋钮，捕捉到了遥远的隐藏频率：' + newly.join('、') + '！', 'good');
   } else if (ITEMS[r.result]) {
     addItem(r.result, r.resultCount);
   }
@@ -5977,6 +6021,7 @@ function getItemSfx(id) {
   if (id === 'chocolate') return 'chocolate';
   if (id === 'chips' || id === 'crackers' || id === 'nuts' || id === 'rations') return 'chips';
   if (id === 'energy_bar') return 'snack';
+  if (id === 'mixed_rations') return 'snack';
   if (id === 'beef_jerky') return 'jerky';
   if (id === 'bread') return 'bread';
   if (id === 'canned_food' || id === 'canned_meat') return 'canned';
@@ -5984,6 +6029,7 @@ function getItemSfx(id) {
   if (id === 'fried_meat') return 'fried_meat';
   if (id === 'pet_food') return 'pet_food';
   if (id === 'disinfectant') return 'disinfect';
+  if (id === 'homemade_antiseptic') return 'disinfect';
   if (id === 'adrenaline') return 'inject';
   if (id === 'saline') return 'bandage';
   if (['first_aid','painkillers','antibiotics','vitamins'].includes(id)) return 'pills';
