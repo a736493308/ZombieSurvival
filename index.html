@@ -2523,35 +2523,42 @@ function isNight() {
   return h >= 21 || h < 6;
 }
 function getPhaseName() {
-  const h = Math.floor(game.clock / 60) % 24;
+  const raw = Math.floor(game.clock / 60);
+  const h = raw % 24;
   if (h >= 6 && h < 12) return '上午';
   if (h >= 12 && h < 14) return '中午';
   if (h >= 14 && h < 18) return '下午';
   if (h >= 18 && h < 21) return '傍晚';
+  if (raw >= 24) return '凌晨';
   return '夜晚';
 }
 function advanceTime(minutes) {
   game.clock += minutes;
-  // 随时间自然代谢（每1分钟 饥饿-0.03、口渴-0.045），整体放缓让节奏更耐玩
   game.hunger = Math.max(0, game.hunger - minutes * 0.03);
   game.thirst = Math.max(0, game.thirst - minutes * 0.045);
-  if (game.clock >= 1440) {
-    if (game.location === 'safehouse') {
-      endDay();
-      return true; // 在避难所到午夜：睡觉进入下一天
-    }
-    // 在外地到午夜：不强制回避难所，时间封顶在深夜，弹窗让玩家抉择（只弹一次）
-    game.clock = 1439;
-    if (!game.midnightPrompted) {
+  if (game.location === 'safehouse' && game.clock >= 1440) {
+    endDay();
+    return true;
+  }
+  if (game.location !== 'safehouse') {
+    if (game.clock >= 1440 && !game.midnightPrompted) {
       game.midnightPrompted = true;
       showMidnightChoice();
+      return false;
     }
-    return false;
+    if (game.deepNight && game.clock >= 1800) {
+      log('你在遍地丧尸的城市里硬撑了一整夜，直到天边泛起鱼肚白……', 'danger');
+      endDay();
+      return true;
+    }
   }
   return false;
 }
 function getDangerMultiplier() {
-  if (game.deepNight) return 2.4;   // 午夜后仍滞留外地：极度危险
+  if (game.deepNight) {
+    const extraHours = Math.max(0, (game.clock - 1440) / 60);
+    return Math.min(3.0, 2.4 + extraHours * 0.1);
+  }
   return isNight() ? 2.0 : 1.0;
 }
 
@@ -2560,7 +2567,7 @@ function showMidnightChoice() {
   const loc = LOCATIONS[game.location];
   document.getElementById('midnight-desc').innerHTML =
     '已经是午夜 24:00，你还滞留在 <b style="color:#e08070;">' + loc.name + '</b>。<br><br>' +
-    '深夜是丧尸活动最猖獗的时段，继续留下会使<b style="color:#e08070;">遭遇丧尸的概率大幅提升</b>，饥渴和精力也会持续消耗。<br><br>是否立即返回避难所？';
+    '深夜是丧尸活动最猖獗的时段。<b style="color:#e08070;">你可以冒险硬撑到清晨6点（在外面过夜），但每多撑一小时遭遇概率都会进一步升高；行动力一旦耗尽就只能返回避难所</b>，饥渴和精力也会持续消耗。<br><br>是立即返回，还是冒险留下？';
   document.getElementById('midnight-overlay').classList.add('active');
   try { playSfx('zombie_growl', 0.18); } catch(e) {}
 }
@@ -2576,7 +2583,7 @@ function midnightGoHome() {
 function midnightStay() {
   document.getElementById('midnight-overlay').classList.remove('active');
   game.deepNight = true;
-  log('你决定冒险在深夜继续搜索。黑暗中嘶吼声越来越密集，遭遇概率大幅提升，千万小心！', 'danger');
+  log('你决定冒险在深夜继续搜索。黑暗中嘶吼声越来越密集，越接近凌晨危险越高；行动力一旦耗尽将无法搜索，只能返回避难所，千万小心！', 'danger');
   renderAll();
 }
 
@@ -3389,12 +3396,12 @@ function renderActions() {
     if (getWeatherEffects().canCollectWater) {
       const rainMax = hasItem('rain_barrel') ? 4 : 2;
       const wLeft = rainMax - (game.waterCollectCount || 0);
-      addActionBtn(list, '收集雨水' + (wLeft < rainMax ? '(' + wLeft + '次)' : ''), 'collect_water', '雨天接水，每次1瓶，最多' + rainMax + '次' + (hasItem('rain_barrel') ? '（集水桶扩容）' : ''), '0AP');
+      addActionBtn(list, '收集雨水' + (wLeft < rainMax ? '(' + wLeft + '次)' : ''), 'collect_water', '耗时30分钟，雨天接水，每次1瓶，最多' + rainMax + '次' + (hasItem('rain_barrel') ? '（集水桶扩容）' : ''), '0AP');
     }
-    addActionBtn(list, '加热食物', 'cook', '加热食材提升效果（不耗行动力）', '0AP');
+    addActionBtn(list, '加热食物', 'cook', '加热食材（耗时20分钟，不耗行动力）', '0AP');
     if (game.dogCompanion) {
       addActionBtn(list, '和狗玩耍', 'play_dog', '抚摸伙伴，恢复精神', '1AP');
-      addActionBtn(list, '喂狗', 'feed_dog', '给狗喂食，恢复饱腹度', '1AP');
+      addActionBtn(list, '喂狗', 'feed_dog', '给狗喂食（耗时20分钟，不耗行动力）', '0AP');
     }
     addActionBtn(list, '睡到天明', 'wait', '休息到次日清晨（任意时间可用）', '结束今天');
     addActionBtn(list, '打开地图', 'travel', '查看城市地图', '0AP');
@@ -3402,6 +3409,12 @@ function renderActions() {
   } else {
     const searched = game.searched[game.location] || 0;
     const night = isNight();
+    if (game.ap < 1) {
+      const apWarn = document.createElement('div');
+      apWarn.style.cssText = 'padding:9px 12px;margin-bottom:6px;border-radius:5px;background:rgba(120,40,30,0.25);border:1px solid rgba(200,80,60,0.5);color:#e09080;font-size:13px;line-height:1.5;';
+      apWarn.textContent = game.deepNight ? '你已精疲力尽，凌晨的城市极度危险，现在只能立即返回避难所。' : '行动力已耗尽，无法继续搜索，请返回避难所休息恢复。';
+      list.appendChild(apWarn);
+    }
     addActionBtn(list, `快速搜索 (已搜${searched}次)`, 'search_quick', '40分钟 · 1AP · 体力-5 · 低风险、少量物资', '1AP');
     addActionBtn(list, `彻底搜索`, 'search_thorough', '75分钟 · 2AP · 体力-15 · 高风险、更多物资（需体力≥15）' + (night ? ' · 夜晚稀有↑、危险↑' : ''), '2AP');
     if (game.ap >= 1) {
@@ -3997,6 +4010,7 @@ function doRest() {
     log('你小憩了两小时，恢复了精力和少量生命，行动力+2。', 'good');
   }
   if (game.hp <= 0) { gameOver('你在休息中因极度饥饿和脱水而死去。'); return; }
+  if (game.location === 'safehouse' && game.clock + 120 >= 1440) log('你本只想小憩两小时，却因极度疲惫一觉睡到了次日清晨。', 'system');
   if (advanceTime(120)) return; // 休息2小时，跨天则结束
   checkDayEnd();
   renderAll();
@@ -4430,6 +4444,8 @@ function travelTo(locId) {
   const weatherFx = getWeatherEffects();
   const actualTime = (loc.travelTime || 30) + weatherFx.travelMod;
   advanceTime(actualTime);
+  // 若这趟路程跨过午夜弹出抉择，中断后续，避免抉择框与途中伏击叠加
+  if (document.getElementById('midnight-overlay').classList.contains('active')) { renderAll(); return; }
   const throughDanger = routePassesDanger(LOCATIONS.safehouse.mapPos.x, LOCATIONS.safehouse.mapPos.y, loc.mapPos.x, loc.mapPos.y);
   log('你前往了' + loc.name + '。（耗时' + actualTime + '分钟，行动力-' + apCost + '，体力-' + travelCost + (weatherFx.travelMod > 0 ? '，天气拖慢了行程' : '') + '）', 'system');
   if (!rollTravelAmbush('safehouse', locId)) {
@@ -5632,9 +5648,7 @@ function doFeedDog() {
 }
 
 function doFeedDogItem(itemId, amount) {
-  if (game.ap < 1) { log('行动力不足，无法喂食！', 'danger'); playSfx('error', 0.4); return; }
   if (!hasItem(itemId)) { playSfx('error', 0.4); return; }
-  game.ap -= 1;
   removeItem(itemId);
   game.dogHunger = Math.min(100, (game.dogHunger||0) + amount);
   game.dogStarveDays = 0;
@@ -5642,7 +5656,7 @@ function doFeedDogItem(itemId, amount) {
   log('你把' + ITEMS[itemId].name + '分给了狗，它狼吞虎咽地吃完，摇着尾巴蹭你的手。狗饱腹度+' + amount + '，心情+3。', 'good');
   playSfx('pet_food', 0.4);
   closeFeedDog();
-  advanceTime(10);
+  advanceTime(20);
   checkDayEnd();
   renderAll();
 }
@@ -5697,6 +5711,8 @@ function checkDayEnd() {
 function endDay() {
   // 生成日记
   generateDiaryEntry();
+  // 先记录是否在外地过夜（location 随后会被重置回避难所）
+  const sleptOutside = game.location !== 'safehouse';
 
   // 新的一天
   game.day++;
@@ -5795,7 +5811,7 @@ function endDay() {
     log('你感到沮丧和疲惫，状态不佳（搜索发现率-15%，战斗命中-10%）。', 'danger');
   }
 
-  if (game.location !== 'safehouse') {
+  if (sleptOutside) {
     log('你在外面度过了不安的一夜...', 'danger');
     if (chance(0.5 - game.barricadeLevel * 0.1)) {
       log('夜里有丧尸试图闯入！', 'danger');
